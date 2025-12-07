@@ -1,0 +1,100 @@
+.page {
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+}
+
+.backLink {
+    display: inline-block;
+    margin-bottom: 2rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.backLink:hover {
+    color: var(--foreground);
+}
+
+.header {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+    margin-bottom: 4rem;
+    border-bottom: 1px solid #222;
+    padding-bottom: 4rem;
+}
+
+.avatar {
+    border-radius: 50%;
+    border: 4px solid var(--card-bg);
+}
+
+.name {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.role {
+    font-family: var(--font-geist-mono);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1.5rem;
+}
+
+.bio {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #ccc;
+    max-width: 600px;
+    margin-bottom: 1.5rem;
+}
+
+.skills {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.skill {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.8rem;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 99px;
+    color: var(--text-secondary);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 4rem;
+}
+
+.workGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+    }
+
+    .bio {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .skills {
+        justify-content: center;
+    }
+}

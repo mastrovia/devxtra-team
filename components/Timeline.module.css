@@ -1,0 +1,43 @@
+.timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    position: relative;
+    padding-left: 1rem;
+    border-left: 1px solid #222;
+}
+
+.item {
+    position: relative;
+}
+
+.item::before {
+    content: "";
+    position: absolute;
+    left: -1.3rem;
+    top: 0.4rem;
+    width: 9px;
+    height: 9px;
+    background: #333;
+    border-radius: 50%;
+    border: 2px solid #000;
+}
+
+.year {
+    font-family: var(--font-geist-mono);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.3rem;
+}
+
+.title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 0.2rem;
+}
+
+.description {
+    font-size: 0.9rem;
+    color: #888;
+}
