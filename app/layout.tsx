@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Neon Cluster | Developer Collective",
+  title: "Devxtra Team | Developer Collective",
   description: "A premium showcase of our software developers and their work.",
 };
 
