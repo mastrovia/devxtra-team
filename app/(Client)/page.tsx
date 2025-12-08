@@ -14,18 +14,20 @@ import {
 import { testimonials } from "@/lib/data";
 import DeveloperCard from "@/components/DeveloperCard";
 import { useRef, useEffect, useState } from "react";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { getLandingStats, getPublicTeam } from "./actions";
 
-gsap.registerPlugin(ScrollTrigger);
+// Lazy load GSAP only when needed
+let gsap: any;
+let ScrollTrigger: any;
+let useGSAP: any;
 
 export default function LandingPage() {
   const container = useRef(null);
   const [stats, setStats] = useState({ experts: 0, shipped: 0 });
   const [team, setTeam] = useState<any[]>([]);
+  const [animationsReady, setAnimationsReady] = useState(false);
 
+  // Load data immediately
   useEffect(() => {
     const loadData = async () => {
       const [statsData, teamData] = await Promise.all([
@@ -38,33 +40,57 @@ export default function LandingPage() {
     loadData();
   }, []);
 
-  useGSAP(
-    () => {
-      const tl = gsap.timeline();
+  // Lazy load GSAP after initial render
+  useEffect(() => {
+    const loadGSAP = async () => {
+      const gsapModule = await import("gsap");
+      const scrollTriggerModule = await import("gsap/ScrollTrigger");
+      const useGSAPModule = await import("@gsap/react");
 
-      tl.from(".hero-text", {
-        y: 50,
+      gsap = gsapModule.default;
+      ScrollTrigger = scrollTriggerModule.ScrollTrigger;
+      useGSAP = useGSAPModule.useGSAP;
+
+      gsap.registerPlugin(ScrollTrigger);
+      setAnimationsReady(true);
+    };
+
+    // Delay GSAP loading slightly to prioritize initial render
+    const timer = setTimeout(loadGSAP, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Run animations only when GSAP is loaded
+  useEffect(() => {
+    if (!animationsReady || !gsap) return;
+
+    const tl = gsap.timeline();
+
+    tl.from(".hero-text", {
+      y: 50,
+      opacity: 0,
+      duration: 1,
+      stagger: 0.1,
+      ease: "power2.out",
+    });
+
+    gsap.utils.toArray(".reveal-section").forEach((section: any) => {
+      gsap.from(section, {
+        scrollTrigger: {
+          trigger: section,
+          start: "top 85%",
+        },
+        y: 30,
         opacity: 0,
-        duration: 1,
-        stagger: 0.1,
+        duration: 0.8,
         ease: "power2.out",
       });
+    });
 
-      gsap.utils.toArray(".reveal-section").forEach((section: any) => {
-        gsap.from(section, {
-          scrollTrigger: {
-            trigger: section,
-            start: "top 85%",
-          },
-          y: 30,
-          opacity: 0,
-          duration: 0.8,
-          ease: "power2.out",
-        });
-      });
-    },
-    { scope: container }
-  );
+    return () => {
+      ScrollTrigger.getAll().forEach((trigger: any) => trigger.kill());
+    };
+  }, [animationsReady]);
 
   return (
     <div
