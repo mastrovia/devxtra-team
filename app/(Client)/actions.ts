@@ -114,3 +114,44 @@ export async function getPublicMemberById(id: string) {
     ], // Simplified timeline for now
   };
 }
+
+export async function getPublicProjectById(id: string) {
+  const supabase = await createClient();
+
+  // Fetch project details
+  const { data: project, error } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !project) {
+    return null;
+  }
+
+  // Fetch team members involved in the project
+  const { data: projectMembers } = await supabase
+    .from("project_members")
+    .select("member_id, team(*)")
+    .eq("project_id", id);
+
+  const team = (projectMembers || [])
+    .map((pm: any) => pm.team)
+    .filter((t: any) => t && t.status === "Active")
+    .map((t: any) => ({
+      ...t,
+      skills: t.skills || [],
+      works: [],
+      timeline: [],
+      quote: t.bio ? t.bio.split(".")[0] : "Building the future.",
+    }));
+
+  return {
+    ...project,
+    year: project.start_date
+      ? new Date(project.start_date).getFullYear().toString()
+      : new Date(project.created_at).getFullYear().toString(),
+    tags: project.tags || [],
+    team,
+  };
+}

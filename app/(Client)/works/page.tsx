@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import WorkCard from "@/components/WorkCard";
 import { Badge } from "@/components/ui/badge";
 import PageHeader from "@/components/PageHeader";
@@ -73,7 +74,9 @@ export default function WorksPage() {
               ))
             : works.map((work) => (
                 <div key={work.id} className="h-full">
-                  <WorkCard project={work} />
+                  <Link href={`/works/${work.id}`} className="block h-full">
+                    <WorkCard project={work} />
+                  </Link>
                 </div>
               ))}
         </div>
