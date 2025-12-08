@@ -1,72 +1,99 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createPublicClient } from "@/lib/supabase/server";
+import { unstable_cache } from "next/cache";
 
-export async function getPublicProjects() {
-  const supabase = await createClient();
+// Cache public projects for 5 minutes
+export const getPublicProjects = unstable_cache(
+  async () => {
+    const supabase = createPublicClient();
 
-  const { data: projects, error } = await supabase
-    .from("projects")
-    .select("*")
-    .eq("status", "Completed")
-    .neq("category", "self")
-    .order("created_at", { ascending: false });
+    const { data: projects, error } = await supabase
+      .from("projects")
+      .select(
+        "id, title, description, status, start_date, created_at, tags, link, metrics, category, images"
+      )
+      .eq("status", "Completed")
+      .neq("category", "self")
+      .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error("Error fetching projects:", error);
-    return [];
+    if (error) {
+      console.error("Error fetching projects:", error);
+      return [];
+    }
+
+    return (projects || []).map((p) => ({
+      ...p,
+      year: p.start_date
+        ? new Date(p.start_date).getFullYear().toString()
+        : new Date(p.created_at).getFullYear().toString(),
+      tags: p.tags || [],
+    }));
+  },
+  ["public-projects"],
+  {
+    revalidate: 300, // Cache for 5 minutes
+    tags: ["projects"],
   }
+);
 
-  return (projects || []).map((p) => ({
-    ...p,
-    year: p.start_date
-      ? new Date(p.start_date).getFullYear().toString()
-      : new Date(p.created_at).getFullYear().toString(),
-    tags: p.tags || [],
-  }));
-}
+// Cache public team for 5 minutes
+export const getPublicTeam = unstable_cache(
+  async () => {
+    const supabase = createPublicClient();
 
-export async function getPublicTeam() {
-  const supabase = await createClient();
+    const { data: team, error } = await supabase
+      .from("team")
+      .select("id, name, email, role, status, avatar, bio, skills")
+      .eq("status", "Active")
+      .order("name", { ascending: true });
 
-  const { data: team, error } = await supabase
-    .from("team")
-    .select("*")
-    .eq("status", "Active")
-    .order("name", { ascending: true });
+    if (error) {
+      console.error("Error fetching team:", error);
+      return [];
+    }
 
-  if (error) {
-    console.error("Error fetching team:", error);
-    return [];
+    return (team || []).map((t) => ({
+      ...t,
+      skills: t.skills || [],
+      works: [], // Placeholder to match type
+      timeline: [], // Placeholder to match type
+      quote: t.bio ? t.bio.split(".")[0] : "Building the future.",
+    }));
+  },
+  ["public-team"],
+  {
+    revalidate: 300, // Cache for 5 minutes
+    tags: ["team"],
   }
+);
 
-  return (team || []).map((t) => ({
-    ...t,
-    skills: t.skills || [],
-    works: [], // Placeholder to match type
-    timeline: [], // Placeholder to match type
-    quote: t.bio ? t.bio.split(".")[0] : "Building the future.",
-  }));
-}
+// Cache landing stats for 10 minutes (changes rarely)
+export const getLandingStats = unstable_cache(
+  async () => {
+    const supabase = createPublicClient();
 
-export async function getLandingStats() {
-  const supabase = await createClient();
+    const { count: teamCount } = await supabase
+      .from("team")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "Active");
 
-  const { count: teamCount } = await supabase
-    .from("team")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "Active");
+    const { count: projectCount } = await supabase
+      .from("projects")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "Completed");
 
-  const { count: projectCount } = await supabase
-    .from("projects")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "Completed");
-
-  return {
-    experts: teamCount || 0,
-    shipped: projectCount || 0,
-  };
-}
+    return {
+      experts: teamCount || 0,
+      shipped: projectCount || 0,
+    };
+  },
+  ["landing-stats"],
+  {
+    revalidate: 600, // Cache for 10 minutes
+    tags: ["stats"],
+  }
+);
 
 export async function getPublicMemberById(id: string) {
   const supabase = await createClient();

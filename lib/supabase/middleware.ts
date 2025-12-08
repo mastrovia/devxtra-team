@@ -33,9 +33,17 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Safely get user with error handling
+  let user = null;
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (!error && data?.user) {
+      user = data.user;
+    }
+  } catch (error) {
+    // Silently handle auth errors (network issues, etc.)
+    console.error("Middleware auth error:", error);
+  }
 
   // Protected Routes Logic
   if (request.nextUrl.pathname.startsWith("/admin") && !user) {
