@@ -10,15 +10,6 @@ import {
   TrendingUp,
   Activity,
 } from "lucide-react";
-import {
-  ResponsiveContainer,
-  Tooltip,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Cell,
-} from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -71,7 +62,11 @@ export default function AdminDashboard() {
       ].filter((item) => item.count > 0)
     : [];
 
-  const workloadData = stats?.teamMembersWithProjects.slice(0, 5) || [];
+  const workloadData =
+    stats?.teamMembersWithProjects
+      .slice()
+      .sort((a, b) => b.projectCount - a.projectCount)
+      .slice(0, 5) || [];
 
   if (loading) {
     return (
@@ -228,33 +223,35 @@ export default function AdminDashboard() {
           </div>
 
           {workloadData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart
-                data={workloadData}
-                layout="horizontal"
-                margin={{ left: 0, right: 0 }}
-              >
-                <XAxis type="number" hide />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  width={80}
-                  tick={{ fontSize: 12 }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
-                <Bar dataKey="projectCount" radius={[0, 4, 4, 0]}>
-                  {workloadData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill="#3b82f6" />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="space-y-3">
+              {workloadData.map((member, index) => {
+                const maxProjects = Math.max(
+                  ...workloadData.map((m) => m.projectCount),
+                  1
+                );
+                const percentage = (member.projectCount / maxProjects) * 100;
+
+                return (
+                  <div key={index} className="space-y-1">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium truncate max-w-[150px]">
+                        {member.name}
+                      </span>
+                      <span className="text-muted-foreground">
+                        {member.projectCount}{" "}
+                        {member.projectCount === 1 ? "project" : "projects"}
+                      </span>
+                    </div>
+                    <div className="h-2 bg-secondary/30 rounded-none overflow-hidden">
+                      <div
+                        className="h-full rounded-none transition-all bg-blue-500"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           ) : (
             <div className="flex items-center justify-center h-40 text-sm text-muted-foreground">
               No team data available
