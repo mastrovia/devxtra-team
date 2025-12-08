@@ -19,9 +19,9 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
 
-  const navigation = [
+  const navItems = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { name: "Students", href: "/admin/students", icon: Users },
+    { name: "Team", href: "/admin/team", icon: Users },
     { name: "Projects", href: "/admin/projects", icon: CheckSquare },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ];
@@ -37,7 +37,7 @@ export default function AdminLayout({
         </div>
 
         <nav className="flex-1 p-4 space-y-2">
-          {navigation.map((item) => {
+          {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Button

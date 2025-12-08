@@ -1,25 +1,49 @@
 "use client";
 
-import { useState } from "react";
-import { initialStudents, Student, initialProjects } from "@/lib/admin-data";
+import { useState, useEffect } from "react";
+import {
+  getStudents,
+  createStudent,
+  updateStudent,
+  deleteStudent,
+  type Student,
+} from "./actions";
+import { getProjects } from "../projects/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, Trash2, Edit2, X, Save, FolderGit2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 export default function StudentsPage() {
-  const [students, setStudents] = useState<Student[]>(initialStudents);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [currentStudent, setCurrentStudent] = useState<Partial<Student> | null>(
     null
   );
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    const [studentsData, projectsData] = await Promise.all([
+      getStudents(),
+      getProjects(),
+    ]);
+    setStudents(studentsData);
+    setProjects(projectsData);
+    setLoading(false);
+  };
 
   const getStudentProjectCount = (studentId: string) => {
-    return initialProjects.filter((p) =>
-      p.assignedMemberIds.includes(studentId)
-    ).length;
+    return projects.filter((p) => p.assigned_member_ids?.includes(studentId))
+      .length;
   };
 
   const filteredStudents = students.filter(
@@ -28,9 +52,15 @@ export default function StudentsPage() {
       s.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to remove this student?")) {
-      setStudents(students.filter((s) => s.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to remove this student?")) return;
+
+    const result = await deleteStudent(id);
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success("Student removed successfully");
+      loadData();
     }
   };
 
@@ -46,33 +76,52 @@ export default function StudentsPage() {
       role: "Student",
       status: "Active",
       phone: "",
-      enrollmentNo: `DX-2024-${Math.floor(Math.random() * 1000)}`,
-      joinedDate: new Date().toISOString().split("T")[0],
+      enrollment_no: `DX-2024-${Math.floor(Math.random() * 1000)}`,
     });
     setIsPanelOpen(true);
   };
 
-  const handleSave = () => {
-    if (!currentStudent?.name || !currentStudent.email) return;
-
-    if (currentStudent.id) {
-      // Update
-      setStudents(
-        students.map((s) =>
-          s.id === currentStudent.id ? (currentStudent as Student) : s
-        )
-      );
-    } else {
-      // Create
-      const newStudent = {
-        ...currentStudent,
-        id: Math.random().toString(36).substr(2, 9),
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentStudent.name}`,
-      } as Student;
-      setStudents([...students, newStudent]);
+  const handleSave = async () => {
+    if (!currentStudent?.name || !currentStudent.email) {
+      toast.error("Name and email are required");
+      return;
     }
-    setIsPanelOpen(false);
+
+    const formData = new FormData();
+    if (currentStudent.id) {
+      formData.append("id", currentStudent.id);
+    }
+    formData.append("name", currentStudent.name);
+    formData.append("email", currentStudent.email);
+    formData.append("phone", currentStudent.phone || "");
+    formData.append("role", currentStudent.role || "Student");
+    formData.append("status", currentStudent.status || "Active");
+    formData.append("enrollmentNo", currentStudent.enrollment_no || "");
+
+    const result = currentStudent.id
+      ? await updateStudent(formData)
+      : await createStudent(formData);
+
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success(
+        currentStudent.id
+          ? "Student updated successfully"
+          : "Student created successfully"
+      );
+      setIsPanelOpen(false);
+      loadData();
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-muted-foreground">Loading students...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 relative h-full">
@@ -120,7 +169,10 @@ export default function StudentsPage() {
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-4">
                     <Avatar>
-                      <AvatarImage src={student.avatar} alt={student.name} />
+                      <AvatarImage
+                        src={student.avatar || undefined}
+                        alt={student.name}
+                      />
                       <AvatarFallback>
                         {student.name.slice(0, 2).toUpperCase()}
                       </AvatarFallback>
@@ -163,7 +215,7 @@ export default function StudentsPage() {
                   </Badge>
                 </td>
                 <td className="px-6 py-4 text-muted-foreground">
-                  {student.phone}
+                  {student.phone || "-"}
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -203,13 +255,11 @@ export default function StudentsPage() {
       {/* Slide-over Panel for Edit/Create */}
       {isPanelOpen && (
         <div className="fixed inset-0 z-50 flex justify-end">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setIsPanelOpen(false)}
           />
 
-          {/* Panel */}
           <div className="relative w-full max-w-md bg-background h-full shadow-2xl p-6 border-l border-border flex flex-col animate-in slide-in-from-right duration-300">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-2xl font-bold tracking-tight">

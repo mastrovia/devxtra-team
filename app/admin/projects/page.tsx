@@ -1,7 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { initialProjects, Project, initialStudents } from "@/lib/admin-data";
+import { useState, useEffect } from "react";
+import {
+  getProjects,
+  createProject,
+  updateProject,
+  deleteProject,
+  type Project,
+} from "./actions";
+import { getTeamMembers, type TeamMember } from "../team/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,32 +21,55 @@ import {
   Save,
   Calendar,
   ExternalLink,
-  ImageIcon,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { TableSkeleton } from "@/components/skeleton-table";
 
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [currentProject, setCurrentProject] = useState<Partial<Project> | null>(
     null
   );
   const [newImageInput, setNewImageInput] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  // Helper to get student details by ID
-  const getStudent = (id: string) => initialStudents.find((s) => s.id === id);
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    const [projectsData, membersData] = await Promise.all([
+      getProjects(),
+      getTeamMembers(),
+    ]);
+    setProjects(projectsData);
+    setTeamMembers(membersData);
+    setLoading(false);
+  };
+
+  const getMember = (id: string) => teamMembers.find((m) => m.id === id);
 
   const filteredProjects = projects.filter(
     (p) =>
       p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.description.toLowerCase().includes(searchQuery.toLowerCase())
+      (p.description || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this project?")) {
-      setProjects(projects.filter((p) => p.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this project?")) return;
+
+    const result = await deleteProject(id);
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success("Project deleted successfully");
+      loadData();
     }
   };
 
@@ -53,9 +83,9 @@ export default function ProjectsPage() {
       title: "",
       description: "",
       status: "Pending",
-      startDate: new Date().toISOString().split("T")[0],
-      dueDate: "",
-      assignedMemberIds: [],
+      start_date: new Date().toISOString().split("T")[0],
+      due_date: "",
+      assigned_member_ids: [],
       tags: [],
       link: "",
       images: [],
@@ -64,18 +94,18 @@ export default function ProjectsPage() {
     setIsPanelOpen(true);
   };
 
-  const toggleMemberAssignment = (studentId: string) => {
+  const toggleMemberAssignment = (memberId: string) => {
     if (!currentProject) return;
-    const currentIds = currentProject.assignedMemberIds || [];
-    if (currentIds.includes(studentId)) {
+    const currentIds = currentProject.assigned_member_ids || [];
+    if (currentIds.includes(memberId)) {
       setCurrentProject({
         ...currentProject,
-        assignedMemberIds: currentIds.filter((id) => id !== studentId),
+        assigned_member_ids: currentIds.filter((id) => id !== memberId),
       });
     } else {
       setCurrentProject({
         ...currentProject,
-        assignedMemberIds: [...currentIds, studentId],
+        assigned_member_ids: [...currentIds, memberId],
       });
     }
   };
@@ -99,23 +129,44 @@ export default function ProjectsPage() {
     });
   };
 
-  const handleSave = () => {
-    if (!currentProject?.title) return;
-
-    if (currentProject.id) {
-      setProjects(
-        projects.map((p) =>
-          p.id === currentProject.id ? (currentProject as Project) : p
-        )
-      );
-    } else {
-      const newProject = {
-        ...currentProject,
-        id: Math.random().toString(36).substr(2, 9),
-      } as Project;
-      setProjects([...projects, newProject]);
+  const handleSave = async () => {
+    if (!currentProject?.title) {
+      toast.error("Project title is required");
+      return;
     }
-    setIsPanelOpen(false);
+
+    const formData = new FormData();
+    if (currentProject.id) {
+      formData.append("id", currentProject.id);
+    }
+    formData.append("title", currentProject.title);
+    formData.append("description", currentProject.description || "");
+    formData.append("status", currentProject.status || "Pending");
+    formData.append("dueDate", currentProject.due_date || "");
+    formData.append("link", currentProject.link || "");
+    formData.append("metrics", currentProject.metrics || "");
+    formData.append("tags", (currentProject.tags || []).join(", "));
+    formData.append("images", JSON.stringify(currentProject.images || []));
+    formData.append(
+      "memberIds",
+      JSON.stringify(currentProject.assigned_member_ids || [])
+    );
+
+    const result = currentProject.id
+      ? await updateProject(formData)
+      : await createProject(formData);
+
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success(
+        currentProject.id
+          ? "Project updated successfully"
+          : "Project created successfully"
+      );
+      setIsPanelOpen(false);
+      loadData();
+    }
   };
 
   return (
@@ -143,153 +194,164 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      <div className="border border-border bg-card rounded-md overflow-hidden">
-        <table className="w-full text-sm text-left">
-          <thead className="text-muted-foreground uppercase bg-secondary/30 font-medium border-b border-border">
-            <tr>
-              <th className="px-6 py-4">Project</th>
-              <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4">Timeline</th>
-              <th className="px-6 py-4">Team</th>
-              <th className="px-6 py-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {filteredProjects.map((project) => (
-              <tr
-                key={project.id}
-                className="hover:bg-muted/30 transition-colors group"
-              >
-                <td className="px-6 py-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <div className="font-semibold text-foreground text-base">
-                        {project.title}
-                      </div>
-                      {project.link && (
-                        <a
-                          href={project.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
-                      )}
-                    </div>
-
-                    <div className="text-xs text-muted-foreground max-w-[200px] truncate">
-                      {project.description}
-                    </div>
-                    <div className="flex gap-1 mt-1">
-                      {project.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <Badge
-                    variant="outline"
-                    className={`
-                        ${
-                          project.status === "Completed"
-                            ? "border-green-500 text-green-500"
-                            : ""
-                        }
-                        ${
-                          project.status === "In Progress"
-                            ? "border-blue-500 text-blue-500"
-                            : ""
-                        }
-                        ${
-                          project.status === "Pending"
-                            ? "border-yellow-500 text-yellow-500"
-                            : ""
-                        }
-                    `}
-                  >
-                    {project.status}
-                  </Badge>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="text-xs text-muted-foreground space-y-1">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" /> Start:{" "}
-                      {project.startDate}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" /> Due:{" "}
-                      <span className="text-foreground">{project.dueDate}</span>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex -space-x-2 overflow-hidden">
-                    {project.assignedMemberIds.map((id) => {
-                      const student = getStudent(id);
-                      if (!student) return null;
-                      return (
-                        <Avatar
-                          key={id}
-                          className="inline-block h-8 w-8 ring-2 ring-background"
-                        >
-                          <AvatarImage
-                            src={student.avatar}
-                            alt={student.name}
-                          />
-                          <AvatarFallback>
-                            {student.name.slice(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                      );
-                    })}
-                    {project.assignedMemberIds.length === 0 && (
-                      <span className="text-xs text-muted-foreground italic">
-                        Unassigned
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(project)}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => handleDelete(project.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {filteredProjects.length === 0 && (
+      {loading ? (
+        <TableSkeleton rows={5} columns={5} />
+      ) : (
+        <div className="border border-border bg-card rounded-md overflow-hidden">
+          <table className="w-full text-sm text-left">
+            <thead className="text-muted-foreground uppercase bg-secondary/30 font-medium border-b border-border">
               <tr>
-                <td
-                  colSpan={5}
-                  className="text-center py-12 text-muted-foreground"
-                >
-                  No projects found.
-                </td>
+                <th className="px-6 py-4">Project</th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4">Timeline</th>
+                <th className="px-6 py-4">Team</th>
+                <th className="px-6 py-4 text-right">Actions</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {filteredProjects.map((project) => (
+                <tr
+                  key={project.id}
+                  className="hover:bg-muted/30 transition-colors group"
+                >
+                  <td className="px-6 py-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <div className="font-semibold text-foreground text-base">
+                          {project.title}
+                        </div>
+                        {project.link && (
+                          <a
+                            href={project.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-muted-foreground hover:text-primary transition-colors"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
+
+                      <div className="text-xs text-muted-foreground max-w-[200px] truncate">
+                        {project.description}
+                      </div>
+                      <div className="flex gap-1 mt-1">
+                        {project.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <Badge
+                      variant="outline"
+                      className={`
+                          ${
+                            project.status === "Completed"
+                              ? "border-green-500 text-green-500"
+                              : ""
+                          }
+                          ${
+                            project.status === "In Progress"
+                              ? "border-blue-500 text-blue-500"
+                              : ""
+                          }
+                          ${
+                            project.status === "Pending"
+                              ? "border-yellow-500 text-yellow-500"
+                              : ""
+                          }
+                      `}
+                    >
+                      {project.status}
+                    </Badge>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" /> Start:{" "}
+                        {project.start_date
+                          ? new Date(project.start_date).toLocaleDateString()
+                          : "-"}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" /> Due:{" "}
+                        <span className="text-foreground">
+                          {project.due_date
+                            ? new Date(project.due_date).toLocaleDateString()
+                            : "-"}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex -space-x-2 overflow-hidden">
+                      {project.assigned_member_ids?.map((id) => {
+                        const member = getMember(id);
+                        if (!member) return null;
+                        return (
+                          <Avatar
+                            key={id}
+                            className="inline-block h-8 w-8 ring-2 ring-background"
+                          >
+                            <AvatarImage
+                              src={member.avatar || undefined}
+                              alt={member.name}
+                            />
+                            <AvatarFallback>
+                              {member.name.slice(0, 2)}
+                            </AvatarFallback>
+                          </Avatar>
+                        );
+                      })}
+                      {!project.assigned_member_ids ||
+                      project.assigned_member_ids.length === 0 ? (
+                        <span className="text-xs text-muted-foreground italic">
+                          Unassigned
+                        </span>
+                      ) : null}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(project)}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDelete(project.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {filteredProjects.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="text-center py-12 text-muted-foreground"
+                  >
+                    No projects found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Edit/Create Panel */}
       {isPanelOpen && (
@@ -430,11 +492,11 @@ export default function ProjectsPage() {
                     </label>
                     <Input
                       type="date"
-                      value={currentProject?.dueDate || ""}
+                      value={currentProject?.due_date || ""}
                       onChange={(e) =>
                         setCurrentProject((curr) => ({
                           ...curr,
-                          dueDate: e.target.value,
+                          due_date: e.target.value,
                         }))
                       }
                       className="mt-2"
@@ -442,7 +504,7 @@ export default function ProjectsPage() {
                   </div>
                 </div>
 
-                {/* Image Managment */}
+                {/* Image Management */}
                 <div>
                   <label className="text-sm font-medium leading-none">
                     Project Images
@@ -487,16 +549,16 @@ export default function ProjectsPage() {
               <div className="pt-4 border-t border-border">
                 <h4 className="font-medium mb-3">Assign Team Members</h4>
                 <div className="space-y-2 max-h-[200px] overflow-y-auto border border-border rounded-md p-2">
-                  {initialStudents.map((student) => {
+                  {teamMembers.map((member) => {
                     const isAssigned =
-                      currentProject?.assignedMemberIds?.includes(student.id);
+                      currentProject?.assigned_member_ids?.includes(member.id);
                     return (
                       <div
-                        key={student.id}
+                        key={member.id}
                         className={`flex items-center gap-3 p-2 rounded cursor-pointer hover:bg-muted ${
                           isAssigned ? "bg-secondary" : ""
                         }`}
-                        onClick={() => toggleMemberAssignment(student.id)}
+                        onClick={() => toggleMemberAssignment(member.id)}
                       >
                         <div
                           className={`w-4 h-4 border rounded flex items-center justify-center ${
@@ -510,15 +572,15 @@ export default function ProjectsPage() {
                           )}
                         </div>
                         <Avatar className="h-6 w-6">
-                          <AvatarImage src={student.avatar} />
-                          <AvatarFallback>{student.name[0]}</AvatarFallback>
+                          <AvatarImage src={member.avatar || undefined} />
+                          <AvatarFallback>{member.name[0]}</AvatarFallback>
                         </Avatar>
                         <div className="text-sm">
                           <div className="font-medium leading-none">
-                            {student.name}
+                            {member.name}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            {student.role}
+                            {member.role}
                           </div>
                         </div>
                       </div>

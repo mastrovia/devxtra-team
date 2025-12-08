@@ -55,7 +55,7 @@ export async function listAdmins() {
     email: u.email,
     last_sign_in_at: u.last_sign_in_at,
     created_at: u.created_at,
-    banned_until: u.banned_until,
+    // banned_until: u.banned_until,
   }));
 }
 
