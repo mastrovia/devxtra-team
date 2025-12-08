@@ -11,17 +11,32 @@ import {
   Shield,
   Cpu,
 } from "lucide-react";
-import { developers, testimonials } from "@/lib/data";
+import { testimonials } from "@/lib/data";
 import DeveloperCard from "@/components/DeveloperCard";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { getLandingStats, getPublicTeam } from "./actions";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function LandingPage() {
   const container = useRef(null);
+  const [stats, setStats] = useState({ experts: 0, shipped: 0 });
+  const [team, setTeam] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const [statsData, teamData] = await Promise.all([
+        getLandingStats(),
+        getPublicTeam(),
+      ]);
+      setStats(statsData);
+      setTeam(teamData);
+    };
+    loadData();
+  }, []);
 
   useGSAP(
     () => {
@@ -97,11 +112,11 @@ export default function LandingPage() {
             </div>
             <div className="space-y-4 w-full">
               <div className="border-t border-border pt-4">
-                <p className="text-3xl font-bold">15+</p>
+                <p className="text-3xl font-bold">{stats.experts}+</p>
                 <p className="text-sm text-muted-foreground">Experts</p>
               </div>
               <div className="border-t border-border pt-4">
-                <p className="text-3xl font-bold">40+</p>
+                <p className="text-3xl font-bold">{stats.shipped}+</p>
                 <p className="text-sm text-muted-foreground">
                   Projects Shipped
                 </p>
@@ -245,11 +260,17 @@ export default function LandingPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {developers.slice(0, 3).map((dev) => (
-            <div key={dev.id} className="h-full">
-              <DeveloperCard developer={dev} />
+          {team.length > 0 ? (
+            team.slice(0, 3).map((dev) => (
+              <div key={dev.id} className="h-full">
+                <DeveloperCard developer={dev} />
+              </div>
+            ))
+          ) : (
+            <div className="col-span-3 text-center py-12 text-muted-foreground">
+              Loading team data...
             </div>
-          ))}
+          )}
         </div>
 
         <div className="mt-12 md:hidden">

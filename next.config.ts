@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "api.dicebear.com",
       },
+      {
+        protocol: "https",
+        hostname: "uqhormdlxcnusncwrsiq.supabase.co",
+      }
     ],
     dangerouslyAllowSVG: true,
     contentDispositionType: "attachment",
