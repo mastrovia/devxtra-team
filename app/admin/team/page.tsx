@@ -1,17 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  getTeamMembers,
-  createTeamMember,
-  updateTeamMember,
-  deleteTeamMember,
-  type TeamMember,
-} from "./actions";
+import Link from "next/link";
+import { getTeamMembers, deleteTeamMember, type TeamMember } from "./actions";
 import { getProjects } from "../projects/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Trash2, Edit2, X, Save, FolderGit2 } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Trash2,
+  Edit2,
+  FolderGit2,
+  Github,
+  Linkedin,
+  Globe,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -21,9 +25,6 @@ export default function TeamPage() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [currentMember, setCurrentMember] =
-    useState<Partial<TeamMember> | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -57,66 +58,15 @@ export default function TeamPage() {
 
     const result = await deleteTeamMember(id);
     if (result.error) {
-      toast.error(result.error);
+      toast.error(`Failed to delete: ${result.error}`);
     } else {
       toast.success("Team member removed successfully");
       loadData();
     }
   };
 
-  const handleEdit = (member: TeamMember) => {
-    setCurrentMember({ ...member });
-    setIsPanelOpen(true);
-  };
-
-  const handleAddNew = () => {
-    setCurrentMember({
-      name: "",
-      email: "",
-      role: "Member",
-      status: "Active",
-      phone: "",
-      enrollment_no: `DX-2024-${Math.floor(Math.random() * 1000)}`,
-    });
-    setIsPanelOpen(true);
-  };
-
-  const handleSave = async () => {
-    if (!currentMember?.name || !currentMember.email) {
-      toast.error("Name and email are required");
-      return;
-    }
-
-    const formData = new FormData();
-    if (currentMember.id) {
-      formData.append("id", currentMember.id);
-    }
-    formData.append("name", currentMember.name);
-    formData.append("email", currentMember.email);
-    formData.append("phone", currentMember.phone || "");
-    formData.append("role", currentMember.role || "Member");
-    formData.append("status", currentMember.status || "Active");
-    formData.append("enrollmentNo", currentMember.enrollment_no || "");
-
-    const result = currentMember.id
-      ? await updateTeamMember(formData)
-      : await createTeamMember(formData);
-
-    if (result.error) {
-      toast.error(result.error);
-    } else {
-      toast.success(
-        currentMember.id
-          ? "Team member updated successfully"
-          : "Team member added successfully"
-      );
-      setIsPanelOpen(false);
-      loadData();
-    }
-  };
-
   return (
-    <div className="space-y-6 relative h-full">
+    <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Team</h2>
@@ -134,9 +84,11 @@ export default function TeamPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button onClick={handleAddNew}>
-            <Plus className="mr-2 h-4 w-4" /> Add Member
-          </Button>
+          <Link href="/admin/team/new">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" /> Add Member
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -151,7 +103,7 @@ export default function TeamPage() {
                 <th className="px-6 py-4">Role</th>
                 <th className="px-6 py-4">Projects</th>
                 <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Phone</th>
+                <th className="px-6 py-4">Links</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -163,11 +115,8 @@ export default function TeamPage() {
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
-                      <Avatar>
-                        <AvatarImage
-                          src={member.avatar || undefined}
-                          alt={member.name}
-                        />
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={member.avatar} alt={member.name} />
                         <AvatarFallback>
                           {member.name.slice(0, 2).toUpperCase()}
                         </AvatarFallback>
@@ -209,18 +158,47 @@ export default function TeamPage() {
                       {member.status}
                     </Badge>
                   </td>
-                  <td className="px-6 py-4 text-muted-foreground">
-                    {member.phone || "-"}
+                  <td className="px-6 py-4">
+                    <div className="flex gap-2">
+                      {member.github_url && (
+                        <a
+                          href={member.github_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          <Github className="h-4 w-4" />
+                        </a>
+                      )}
+                      {member.linkedin_url && (
+                        <a
+                          href={member.linkedin_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          <Linkedin className="h-4 w-4" />
+                        </a>
+                      )}
+                      {member.portfolio_url && (
+                        <a
+                          href={member.portfolio_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          <Globe className="h-4 w-4" />
+                        </a>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(member)}
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
+                      <Link href={`/admin/team/${member.id}`}>
+                        <Button variant="ghost" size="icon">
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                      </Link>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -245,128 +223,6 @@ export default function TeamPage() {
               )}
             </tbody>
           </table>
-        </div>
-      )}
-
-      {/* Slide-over Panel for Edit/Create */}
-      {isPanelOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setIsPanelOpen(false)}
-          />
-
-          <div className="relative w-full max-w-md bg-background h-full shadow-2xl p-6 border-l border-border flex flex-col animate-in slide-in-from-right duration-300">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl font-bold tracking-tight">
-                {currentMember?.id ? "Edit Member" : "New Member"}
-              </h3>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsPanelOpen(false)}
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-
-            <div className="space-y-4 flex-1 overflow-y-auto">
-              <div>
-                <label className="text-sm font-medium leading-none">
-                  Full Name
-                </label>
-                <Input
-                  value={currentMember?.name || ""}
-                  onChange={(e) =>
-                    setCurrentMember((curr) => ({
-                      ...curr,
-                      name: e.target.value,
-                    }))
-                  }
-                  className="mt-2"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium leading-none">
-                  Email Address
-                </label>
-                <Input
-                  value={currentMember?.email || ""}
-                  onChange={(e) =>
-                    setCurrentMember((curr) => ({
-                      ...curr,
-                      email: e.target.value,
-                    }))
-                  }
-                  className="mt-2"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium leading-none">
-                  Phone
-                </label>
-                <Input
-                  value={currentMember?.phone || ""}
-                  onChange={(e) =>
-                    setCurrentMember((curr) => ({
-                      ...curr,
-                      phone: e.target.value,
-                    }))
-                  }
-                  className="mt-2"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium leading-none">
-                    Role
-                  </label>
-                  <select
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-2"
-                    value={currentMember?.role || "Member"}
-                    onChange={(e) =>
-                      setCurrentMember((curr) => ({
-                        ...curr,
-                        role: e.target.value as any,
-                      }))
-                    }
-                  >
-                    <option value="Student">Student</option>
-                    <option value="Team Lead">Team Lead</option>
-                    <option value="Member">Member</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium leading-none">
-                    Status
-                  </label>
-                  <select
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-2"
-                    value={currentMember?.status || "Active"}
-                    onChange={(e) =>
-                      setCurrentMember((curr) => ({
-                        ...curr,
-                        status: e.target.value as any,
-                      }))
-                    }
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                    <option value="Alumni">Alumni</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-6 border-t border-border mt-auto">
-              <Button className="w-full" onClick={handleSave}>
-                <Save className="mr-2 h-4 w-4" /> Save Changes
-              </Button>
-            </div>
-          </div>
         </div>
       )}
     </div>

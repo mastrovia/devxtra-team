@@ -8,28 +8,26 @@ import {
   CheckCircle2,
   Clock,
   TrendingUp,
+  Activity,
 } from "lucide-react";
 import {
-  PieChart,
-  Pie,
-  Cell,
   ResponsiveContainer,
-  Legend,
   Tooltip,
   BarChart,
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
+  Cell,
 } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
-const COLORS = {
-  pending: "#eab308",
-  inProgress: "#3b82f6",
-  completed: "#22c55e",
-  onHold: "#ef4444",
+const STATUS_COLORS = {
+  Pending: "#f59e0b",
+  "In Progress": "#3b82f6",
+  Completed: "#10b981",
+  "On Hold": "#ef4444",
 };
 
 export default function AdminDashboard() {
@@ -47,235 +45,348 @@ export default function AdminDashboard() {
     setLoading(false);
   };
 
-  const projectStatusData = stats
+  // Prepare data for charts
+  const statusChartData = stats
     ? [
         {
-          name: "Pending",
-          value: stats.projectsByStatus.pending,
-          color: COLORS.pending,
+          status: "Pending",
+          count: stats.projectsByStatus.pending,
+          fill: STATUS_COLORS.Pending,
         },
         {
-          name: "In Progress",
-          value: stats.projectsByStatus.inProgress,
-          color: COLORS.inProgress,
+          status: "Active",
+          count: stats.projectsByStatus.inProgress,
+          fill: STATUS_COLORS["In Progress"],
         },
         {
-          name: "Completed",
-          value: stats.projectsByStatus.completed,
-          color: COLORS.completed,
+          status: "Done",
+          count: stats.projectsByStatus.completed,
+          fill: STATUS_COLORS.Completed,
         },
         {
-          name: "On Hold",
-          value: stats.projectsByStatus.onHold,
-          color: COLORS.onHold,
+          status: "On Hold",
+          count: stats.projectsByStatus.onHold,
+          fill: STATUS_COLORS["On Hold"],
         },
-      ].filter((item) => item.value > 0)
+      ].filter((item) => item.count > 0)
     : [];
 
-  const teamWorkloadData = stats?.teamMembersWithProjects || [];
+  const workloadData = stats?.teamMembersWithProjects.slice(0, 5) || [];
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-          <p className="text-muted-foreground">
-            Overview of your team and projects
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="space-y-8">
+        <Skeleton className="h-8 w-64" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-32 rounded-lg" />
+            <Skeleton key={i} className="h-28" />
           ))}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Skeleton className="h-80 rounded-lg" />
-          <Skeleton className="h-80 rounded-lg" />
+        <div className="grid lg:grid-cols-3 gap-6">
+          <Skeleton className="h-64 lg:col-span-2" />
+          <Skeleton className="h-64" />
         </div>
       </div>
     );
   }
 
+  const completionRate = stats?.totalProjects
+    ? Math.round((stats.projectsByStatus.completed / stats.totalProjects) * 100)
+    : 0;
+
+  // Calculate active rate (percentage of active members)
+  const activeRate = stats?.totalTeamMembers
+    ? Math.round((stats.activeMembers / stats.totalTeamMembers) * 100)
+    : 0;
+
+  // Calculate in-progress percentage
+  const inProgressRate = stats?.totalProjects
+    ? Math.round(
+        (stats.projectsByStatus.inProgress / stats.totalProjects) * 100
+      )
+    : 0;
+
   return (
-    <div className="space-y-6 pb-10">
+    <div className="space-y-8">
+      {/* Header */}
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground">
-          Overview of your team and projects
+        <h1 className="text-2xl font-bold mb-1">Overview</h1>
+        <p className="text-sm text-muted-foreground">
+          Track team performance and project progress
         </p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatsCard
-          title="Total Team Members"
+      {/* Metrics Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <MetricCard
+          label="Team Members"
           value={stats?.totalTeamMembers || 0}
+          subtitle={`${activeRate}% active`}
           icon={Users}
-          description={`${stats?.activeMembers || 0} active`}
-          color="blue"
         />
-        <StatsCard
-          title="Total Projects"
+        <MetricCard
+          label="Total Projects"
           value={stats?.totalProjects || 0}
+          subtitle="All time"
           icon={FolderGit2}
-          description="All projects"
-          color="purple"
         />
-        <StatsCard
-          title="Completed"
+        <MetricCard
+          label="Completed"
           value={stats?.projectsByStatus.completed || 0}
+          subtitle={`${completionRate}% success rate`}
           icon={CheckCircle2}
-          description="Projects done"
-          color="green"
         />
-        <StatsCard
-          title="In Progress"
+        <MetricCard
+          label="In Progress"
           value={stats?.projectsByStatus.inProgress || 0}
-          icon={TrendingUp}
-          description="Active projects"
-          color="amber"
+          subtitle={`${inProgressRate}% of total`}
+          icon={Activity}
+          pulse={(stats?.projectsByStatus.inProgress || 0) > 0}
         />
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Project Status Distribution */}
-        <div className="border border-border bg-card rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">
-            Project Status Distribution
-          </h3>
-          {projectStatusData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Pie
-                  data={projectStatusData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) =>
-                    `${name}: ${(percent * 100).toFixed(0)}%`
-                  }
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {projectStatusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+      {/* Charts Grid */}
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Project Status Overview */}
+        <div className="lg:col-span-2 border border-border rounded-xl p-6 bg-gradient-to-br from-card to-card/50">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="font-semibold text-base">Project Status</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Distribution across stages
+              </p>
+            </div>
+          </div>
+
+          {statusChartData.length > 0 ? (
+            <div className="space-y-3">
+              {statusChartData.map((item) => {
+                const percentage = stats?.totalProjects
+                  ? Math.round((item.count / stats.totalProjects) * 100)
+                  : 0;
+
+                return (
+                  <div key={item.status} className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium">{item.status}</span>
+                      <span className="text-muted-foreground">
+                        {item.count} projects
+                      </span>
+                    </div>
+                    <div className="h-2 bg-secondary/30 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{
+                          width: `${percentage}%`,
+                          backgroundColor: item.fill,
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           ) : (
-            <div className="flex items-center justify-center h-64 text-muted-foreground">
-              No projects yet
+            <div className="flex items-center justify-center h-40 text-sm text-muted-foreground">
+              No project data available
             </div>
           )}
         </div>
 
-        {/* Team Workload */}
-        <div className="border border-border bg-card rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">Team Workload</h3>
-          {teamWorkloadData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={teamWorkloadData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar
-                  dataKey="projectCount"
-                  fill="#3b82f6"
-                  radius={[8, 8, 0, 0]}
+        {/* Quick Stats */}
+        <div className="border border-border rounded-xl p-6 bg-gradient-to-br from-card to-card/50">
+          <h3 className="font-semibold text-base mb-4">Quick Stats</h3>
+          <div className="space-y-4">
+            <StatItem
+              label="Completion Rate"
+              value={`${completionRate}%`}
+              icon={TrendingUp}
+            />
+            <StatItem
+              label="Pending Tasks"
+              value={stats?.projectsByStatus.pending || 0}
+              icon={Clock}
+            />
+            <StatItem
+              label="Active Members"
+              value={stats?.activeMembers || 0}
+              icon={Users}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Team Workload & Recent Activity */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Team Workload Chart */}
+        <div className="border border-border rounded-xl p-6 bg-gradient-to-br from-card to-card/50">
+          <div className="mb-4">
+            <h3 className="font-semibold text-base">Team Workload</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Projects per member
+            </p>
+          </div>
+
+          {workloadData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart
+                data={workloadData}
+                layout="horizontal"
+                margin={{ left: 0, right: 0 }}
+              >
+                <XAxis type="number" hide />
+                <YAxis
+                  dataKey="name"
+                  type="category"
+                  width={80}
+                  tick={{ fontSize: 12 }}
                 />
+                <Tooltip
+                  contentStyle={{
+                    background: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Bar dataKey="projectCount" radius={[0, 4, 4, 0]}>
+                  {workloadData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill="#3b82f6" />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-64 text-muted-foreground">
-              No team members yet
+            <div className="flex items-center justify-center h-40 text-sm text-muted-foreground">
+              No team data available
             </div>
           )}
         </div>
-      </div>
 
-      {/* Recent Projects */}
-      <div className="border border-border bg-card rounded-lg p-6">
-        <h3 className="text-lg font-semibold mb-4">Recent Projects</h3>
-        {stats?.recentProjects && stats.recentProjects.length > 0 ? (
-          <div className="space-y-3">
-            {stats.recentProjects.map((project) => (
-              <div
-                key={project.id}
-                className="flex items-center justify-between p-3 rounded-md hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <FolderGit2 className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <div className="font-medium">{project.title}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {new Date(project.created_at).toLocaleDateString()}
+        {/* Recent Projects */}
+        <div className="border border-border rounded-xl p-6 bg-gradient-to-br from-card to-card/50">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="font-semibold text-base">Recent Projects</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Latest additions
+              </p>
+            </div>
+            <Link
+              href="/admin/projects"
+              className="text-xs text-primary hover:underline"
+            >
+              View all
+            </Link>
+          </div>
+
+          {stats?.recentProjects && stats.recentProjects.length > 0 ? (
+            <div className="space-y-3">
+              {stats.recentProjects.map((project) => (
+                <div
+                  key={project.id}
+                  className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/30 transition-colors cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <FolderGit2 className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate group-hover:text-primary transition-colors">
+                        {project.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(project.created_at).toLocaleDateString(
+                          "en-US",
+                          {
+                            month: "short",
+                            day: "numeric",
+                          }
+                        )}
+                      </p>
                     </div>
                   </div>
+                  <Badge
+                    variant="outline"
+                    className="text-xs px-2 py-0.5 flex-shrink-0"
+                    style={{
+                      borderColor:
+                        STATUS_COLORS[
+                          project.status as keyof typeof STATUS_COLORS
+                        ],
+                      color:
+                        STATUS_COLORS[
+                          project.status as keyof typeof STATUS_COLORS
+                        ],
+                    }}
+                  >
+                    {project.status}
+                  </Badge>
                 </div>
-                <Badge
-                  variant="outline"
-                  className={
-                    project.status === "Completed"
-                      ? "border-green-500 text-green-500"
-                      : project.status === "In Progress"
-                      ? "border-blue-500 text-blue-500"
-                      : project.status === "Pending"
-                      ? "border-yellow-500 text-yellow-500"
-                      : "border-red-500 text-red-500"
-                  }
-                >
-                  {project.status}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 text-muted-foreground">
-            No recent projects
-          </div>
-        )}
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-40 text-sm text-muted-foreground">
+              No recent projects
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-function StatsCard({
-  title,
+function MetricCard({
+  label,
   value,
+  subtitle,
   icon: Icon,
-  description,
-  color,
+  pulse,
 }: {
-  title: string;
+  label: string;
   value: number;
+  subtitle: string;
   icon: React.ElementType;
-  description: string;
-  color: "blue" | "purple" | "green" | "amber";
+  pulse?: boolean;
 }) {
-  const colorClasses = {
-    blue: "bg-blue-500/10 text-blue-600",
-    purple: "bg-purple-500/10 text-purple-600",
-    green: "bg-green-500/10 text-green-600",
-    amber: "bg-amber-500/10 text-amber-600",
-  };
-
   return (
-    <div className="border border-border bg-card rounded-lg p-6 hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-2 rounded-lg ${colorClasses[color]}`}>
-          <Icon className="h-5 w-5" />
+    <div className="relative border border-border rounded-xl p-5 bg-gradient-to-br from-card to-card/50 hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between mb-3">
+        <div
+          className={`p-2 rounded-lg bg-primary/5 ${
+            pulse ? "animate-pulse" : ""
+          }`}
+        >
+          <Icon className="h-5 w-5 text-primary" />
         </div>
       </div>
-      <div className="space-y-1">
-        <p className="text-sm font-medium text-muted-foreground">{title}</p>
-        <p className="text-3xl font-bold tracking-tight">{value}</p>
-        <p className="text-xs text-muted-foreground">{description}</p>
+      <div>
+        <p className="text-2xl font-bold mb-0.5">{value}</p>
+        <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">
+          {label}
+        </p>
+        <p className="text-xs text-muted-foreground">{subtitle}</p>
+      </div>
+    </div>
+  );
+}
+
+function StatItem({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string;
+  value: string | number;
+  icon: React.ElementType;
+}) {
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+      <div className="p-2 rounded-lg bg-primary/10">
+        <Icon className="h-4 w-4 text-primary" />
+      </div>
+      <div className="flex-1">
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="text-lg font-semibold">{value}</p>
       </div>
     </div>
   );

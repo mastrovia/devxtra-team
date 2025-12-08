@@ -353,16 +353,16 @@ export default function ProjectsPage() {
         </div>
       )}
 
-      {/* Edit/Create Panel */}
+      {/* Centered Modal for Edit/Create */}
       {isPanelOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setIsPanelOpen(false)}
           />
 
-          <div className="relative w-full max-w-lg bg-background h-full shadow-2xl p-6 border-l border-border flex flex-col animate-in slide-in-from-right duration-300">
-            <div className="flex items-center justify-between mb-8">
+          <div className="relative w-full max-w-4xl bg-background rounded-lg shadow-2xl border border-border max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-border">
               <h3 className="text-2xl font-bold tracking-tight">
                 {currentProject?.id ? "Edit Project" : "New Project"}
               </h3>
@@ -375,8 +375,8 @@ export default function ProjectsPage() {
               </Button>
             </div>
 
-            <div className="space-y-6 flex-1 overflow-y-auto pr-2">
-              <div className="space-y-4">
+            <div className="p-6 overflow-y-auto flex-1">
+              <div className="space-y-6">
                 <div>
                   <label className="text-sm font-medium leading-none">
                     Project Title
@@ -590,8 +590,11 @@ export default function ProjectsPage() {
               </div>
             </div>
 
-            <div className="pt-6 border-t border-border mt-auto">
-              <Button className="w-full" onClick={handleSave}>
+            <div className="p-6 border-t border-border flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setIsPanelOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave}>
                 <Save className="mr-2 h-4 w-4" /> Save Project
               </Button>
             </div>

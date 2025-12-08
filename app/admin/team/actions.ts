@@ -9,10 +9,15 @@ export type TeamMember = {
   email: string;
   phone: string | null;
   enrollment_no: string | null;
-  role: "Student" | "Team Lead" | "Member";
+  role: "Student" | "Team Lead" | "Member" | "Developer" | "Designer";
   status: "Active" | "Inactive" | "Alumni";
   joined_date: string;
-  avatar: string | null;
+  avatar: string;
+  bio: string | null;
+  skills: string[];
+  github_url: string | null;
+  linkedin_url: string | null;
+  portfolio_url: string | null;
 };
 
 export async function getTeamMembers() {
@@ -39,6 +44,19 @@ export async function createTeamMember(formData: FormData) {
   const role = formData.get("role") as string;
   const status = formData.get("status") as string;
   const enrollmentNo = formData.get("enrollmentNo") as string;
+  const avatar = formData.get("avatar") as string;
+  const bio = formData.get("bio") as string;
+  const skillsStr = formData.get("skills") as string;
+  const githubUrl = formData.get("githubUrl") as string;
+  const linkedinUrl = formData.get("linkedinUrl") as string;
+  const portfolioUrl = formData.get("portfolioUrl") as string;
+
+  const skills = skillsStr
+    ? skillsStr
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
 
   const { data, error } = await supabase
     .from("team")
@@ -49,7 +67,13 @@ export async function createTeamMember(formData: FormData) {
       role,
       status,
       enrollment_no: enrollmentNo,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`,
+      avatar:
+        avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`,
+      bio,
+      skills,
+      github_url: githubUrl || null,
+      linkedin_url: linkedinUrl || null,
+      portfolio_url: portfolioUrl || null,
     })
     .select()
     .single();
@@ -71,17 +95,39 @@ export async function updateTeamMember(formData: FormData) {
   const phone = formData.get("phone") as string;
   const role = formData.get("role") as string;
   const status = formData.get("status") as string;
+  const avatar = formData.get("avatar") as string;
+  const bio = formData.get("bio") as string;
+  const skillsStr = formData.get("skills") as string;
+  const githubUrl = formData.get("githubUrl") as string;
+  const linkedinUrl = formData.get("linkedinUrl") as string;
+  const portfolioUrl = formData.get("portfolioUrl") as string;
 
-  const { error } = await supabase
-    .from("team")
-    .update({
-      name,
-      email,
-      phone,
-      role,
-      status,
-    })
-    .eq("id", id);
+  const skills = skillsStr
+    ? skillsStr
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
+
+  const updateData: any = {
+    name,
+    email,
+    phone,
+    role,
+    status,
+    bio,
+    skills,
+    github_url: githubUrl || null,
+    linkedin_url: linkedinUrl || null,
+    portfolio_url: portfolioUrl || null,
+  };
+
+  // Only update avatar if provided
+  if (avatar) {
+    updateData.avatar = avatar;
+  }
+
+  const { error } = await supabase.from("team").update(updateData).eq("id", id);
 
   if (error) {
     return { error: error.message };

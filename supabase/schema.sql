@@ -5,10 +5,15 @@ CREATE TABLE IF NOT EXISTS team (
   email TEXT NOT NULL UNIQUE,
   phone TEXT,
   enrollment_no TEXT UNIQUE,
-  role TEXT NOT NULL CHECK (role IN ('Student', 'Team Lead', 'Member')),
+  role TEXT NOT NULL CHECK (role IN ('Student', 'Team Lead', 'Member', 'Developer', 'Designer')),
   status TEXT NOT NULL CHECK (status IN ('Active', 'Inactive', 'Alumni')),
   joined_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  avatar TEXT,
+  avatar TEXT NOT NULL,
+  bio TEXT,
+  skills TEXT[] DEFAULT '{}',
+  github_url TEXT,
+  linkedin_url TEXT,
+  portfolio_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
