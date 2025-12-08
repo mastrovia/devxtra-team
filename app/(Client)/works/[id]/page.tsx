@@ -95,6 +95,34 @@ export default async function WorkDetailsPage({
 
       <Separator className="my-12 opacity-50" />
 
+      {/* Project Images Gallery */}
+      {work.images && work.images.length > 0 && (
+        <section className="mb-16 animate-in fade-in slide-in-from-bottom-6 duration-600">
+          <h2 className="text-2xl font-bold tracking-tight mb-8">
+            Project Gallery
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {work.images.map((image: string, index: number) => (
+              <div
+                key={index}
+                className="group relative aspect-video overflow-hidden border border-border bg-muted hover:border-primary/50 transition-all duration-300"
+              >
+                <img
+                  src={image}
+                  alt={`${work.title} - Image ${index + 1}`}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute bottom-4 left-4 text-white text-sm font-medium">
+                    Image {index + 1} of {work.images.length}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
         <h2 className="text-2xl font-bold tracking-tight mb-8 flex items-center gap-3">
           Contributors
