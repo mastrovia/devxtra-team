@@ -52,10 +52,7 @@ export default function NewTeamMemberPage() {
       return;
     }
 
-    if (!formData.avatar) {
-      toast.error("Profile image is required");
-      return;
-    }
+    // Avatar is optional
 
     setLoading(true);
 
@@ -112,9 +109,7 @@ export default function NewTeamMemberPage() {
   };
 
   const isFormValid =
-    formData.name.trim().length > 0 &&
-    formData.email.trim().length > 0 &&
-    formData.avatar.length > 0;
+    formData.name.trim().length > 0 && formData.email.trim().length > 0;
 
   return (
     <div className="flex flex-col min-h-full">
@@ -167,7 +162,7 @@ export default function NewTeamMemberPage() {
                 </label>
               </div>
               <p className="text-xs text-center text-muted-foreground mt-2">
-                {uploading ? "Uploading..." : "Click to upload"}
+                {uploading ? "Uploading..." : "Optional"}
               </p>
             </div>
 
@@ -366,7 +361,7 @@ export default function NewTeamMemberPage() {
                 Ready to create
               </span>
             ) : (
-              <span>Fill in required fields (name, email, avatar)</span>
+              <span>Fill in required fields (name, email)</span>
             )}
           </div>
           <div className="flex gap-3">

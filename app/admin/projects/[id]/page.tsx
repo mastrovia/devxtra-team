@@ -20,6 +20,9 @@ import {
   Users,
   Target,
   Check,
+  Upload,
+  Image as ImageIcon,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -30,6 +33,7 @@ export default function EditProjectPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [formData, setFormData] = useState<any>(null);
   const [originalData, setOriginalData] = useState<string>("");
@@ -58,6 +62,7 @@ export default function EditProjectPage() {
         due_date: formData.due_date,
         tags: formData.tags,
         link: formData.link,
+        images: formData.images,
         assigned_member_ids: formData.assigned_member_ids,
       });
       setHasChanges(currentData !== originalData);
@@ -88,6 +93,7 @@ export default function EditProjectPage() {
         due_date: project.due_date,
         tags: project.tags,
         link: project.link,
+        images: project.images,
         assigned_member_ids: project.assigned_member_ids,
       })
     );
@@ -134,6 +140,46 @@ export default function EditProjectPage() {
       assigned_member_ids: assigned.includes(memberId)
         ? assigned.filter((id: string) => id !== memberId)
         : [...assigned, memberId],
+    });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const currentImages = formData.images || [];
+    const localPreview = URL.createObjectURL(file);
+    setFormData({ ...formData, images: [...currentImages, localPreview] });
+    setUploading(true);
+
+    const data = new FormData();
+    data.append("file", file);
+
+    const { uploadProjectImage } = await import("@/lib/upload");
+    const result = await uploadProjectImage(data);
+
+    setUploading(false);
+
+    if (result.error) {
+      toast.error(result.error);
+      setFormData({ ...formData, images: currentImages });
+      URL.revokeObjectURL(localPreview);
+    } else if (result.url) {
+      setFormData({
+        ...formData,
+        images: [...currentImages, result.url],
+      });
+      toast.success("Image uploaded successfully!");
+      URL.revokeObjectURL(localPreview);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setFormData({
+      ...formData,
+      images: (formData.images || []).filter(
+        (_: string, i: number) => i !== index
+      ),
     });
   };
 
@@ -290,6 +336,56 @@ export default function EditProjectPage() {
                 </div>
               </div>
             </div>
+
+            {/* Project Images */}
+            <div className="bg-gradient-to-br from-card to-card/50 border border-border rounded-none p-6">
+              <h3 className="text-lg font-semibold mb-5 flex items-center gap-2">
+                <ImageIcon className="h-5 w-5" />
+                Project Images
+              </h3>
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-3">
+                  {(formData.images || []).map((img: string, index: number) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={img}
+                        alt={`Project image ${index + 1}`}
+                        className="h-24 w-32 object-cover border border-border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute -top-2 -right-2 h-6 w-6 bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <label className="h-24 w-32 border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors">
+                    {uploading ? (
+                      <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Upload className="h-6 w-6 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground mt-1">
+                          Upload
+                        </span>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={uploading}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Optional. Add screenshots or project images.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -356,7 +452,7 @@ export default function EditProjectPage() {
         <div className="fixed bottom-0 left-64 right-0 border-t border-border bg-card/95 backdrop-blur px-8 py-4 z-20">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="text-sm text-amber-600 flex items-center gap-2">
-              <div className="h-2 w-2 rounded-none bg-amber-500 animate-pulse" />
+              <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
               Unsaved changes
             </div>
             <div className="flex gap-3">

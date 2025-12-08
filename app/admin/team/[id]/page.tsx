@@ -107,8 +107,7 @@ export default function EditTeamMemberPage() {
     }
 
     if (!formData.avatar) {
-      toast.error("Profile image is required");
-      return;
+      // Avatar is optional
     }
 
     setSaving(true);

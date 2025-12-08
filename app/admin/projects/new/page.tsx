@@ -19,12 +19,16 @@ import {
   Users,
   Target,
   Check,
+  Upload,
+  Image as ImageIcon,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 
 export default function NewProjectPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     title: "",
@@ -87,6 +91,48 @@ export default function NewProjectPage() {
       assigned_member_ids: formData.assigned_member_ids.includes(memberId)
         ? formData.assigned_member_ids.filter((id) => id !== memberId)
         : [...formData.assigned_member_ids, memberId],
+    });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const localPreview = URL.createObjectURL(file);
+    setFormData({ ...formData, images: [...formData.images, localPreview] });
+    setUploading(true);
+
+    const data = new FormData();
+    data.append("file", file);
+
+    const { uploadProjectImage } = await import("@/lib/upload");
+    const result = await uploadProjectImage(data);
+
+    setUploading(false);
+
+    if (result.error) {
+      toast.error(result.error);
+      setFormData({
+        ...formData,
+        images: formData.images.filter((img) => img !== localPreview),
+      });
+      URL.revokeObjectURL(localPreview);
+    } else if (result.url) {
+      setFormData({
+        ...formData,
+        images: formData.images.map((img) =>
+          img === localPreview ? result.url! : img
+        ),
+      });
+      toast.success("Image uploaded successfully!");
+      URL.revokeObjectURL(localPreview);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setFormData({
+      ...formData,
+      images: formData.images.filter((_, i) => i !== index),
     });
   };
 
@@ -228,6 +274,56 @@ export default function NewProjectPage() {
                 </div>
               </div>
             </div>
+
+            {/* Project Images */}
+            <div className="bg-gradient-to-br from-card to-card/50 border border-border rounded-none p-6">
+              <h3 className="text-lg font-semibold mb-5 flex items-center gap-2">
+                <ImageIcon className="h-5 w-5" />
+                Project Images
+              </h3>
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-3">
+                  {formData.images.map((img, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={img}
+                        alt={`Project image ${index + 1}`}
+                        className="h-24 w-32 object-cover border border-border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute -top-2 -right-2 h-6 w-6 bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <label className="h-24 w-32 border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors">
+                    {uploading ? (
+                      <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Upload className="h-6 w-6 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground mt-1">
+                          Upload
+                        </span>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={uploading}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Optional. Add screenshots or project images.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -319,7 +415,7 @@ export default function NewProjectPage() {
             >
               {loading ? (
                 <>
-                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-none animate-spin mr-2" />
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                   Creating...
                 </>
               ) : (
