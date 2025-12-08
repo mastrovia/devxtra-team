@@ -95,7 +95,7 @@ export default function TeamPage() {
       {loading ? (
         <TableSkeleton rows={5} columns={6} />
       ) : (
-        <div className="border border-border bg-card rounded-md overflow-hidden">
+        <div className="border border-border bg-card rounded-none overflow-hidden">
           <table className="w-full text-sm text-left">
             <thead className="text-muted-foreground uppercase bg-secondary/30 font-medium border-b border-border">
               <tr>
@@ -132,7 +132,7 @@ export default function TeamPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground ring-1 ring-inset ring-gray-500/10">
+                    <span className="inline-flex items-center rounded-none bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground ring-1 ring-inset ring-gray-500/10">
                       {member.role}
                     </span>
                   </td>

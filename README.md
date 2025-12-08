@@ -19,8 +19,11 @@ A modern admin dashboard for managing team members and projects built with Next.
    SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
    ```
 
-3. **Run database migration**
-   Go to Supabase Dashboard → SQL Editor → Run `supabase/schema.sql`
+3. **Run database migrations**
+
+   - Go to Supabase Dashboard → SQL Editor
+   - Run `supabase/schema.sql` (database tables)
+   - Run `supabase/storage-setup.sql` (file upload buckets)
 
 4. **Start development server**
    ```bash
