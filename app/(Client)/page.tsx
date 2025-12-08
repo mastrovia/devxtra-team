@@ -286,18 +286,18 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-40 px-6 text-center reveal-section bg-foreground text-background">
+      <section className="py-20 md:py-40 px-6 text-center reveal-section bg-foreground text-background">
         <div className="container mx-auto">
-          <h2 className="text-5xl md:text-8xl font-bold tracking-tight mb-8">
+          <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6 md:mb-8 leading-tight">
             Ready to scale?
           </h2>
-          <p className="text-xl md:text-2xl text-background/80 mb-12 max-w-2xl mx-auto font-light">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-background/80 mb-8 md:mb-12 max-w-2xl mx-auto font-light leading-relaxed px-4">
             Join the next generation of creators who trust DevXtra to build
             their future.
           </p>
           <Button
             size="lg"
-            className="h-20 px-16 text-xl rounded-none bg-background text-foreground hover:bg-background/90 font-bold border-2 border-transparent hover:border-background transition-all"
+            className="h-14 sm:h-16 md:h-20 px-8 sm:px-12 md:px-16 text-base sm:text-lg md:text-xl rounded-none bg-background text-foreground hover:bg-background/90 font-bold border-2 border-transparent hover:border-background transition-all w-full sm:w-auto"
           >
             <Link href="/contact">Initiate Collaboration</Link>
           </Button>
