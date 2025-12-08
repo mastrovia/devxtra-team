@@ -8,7 +8,7 @@ export function TableSkeleton({
   columns?: number;
 }) {
   return (
-    <div className="border border-border bg-card rounded-md overflow-hidden">
+    <div className="border border-border bg-card rounded-none overflow-hidden">
       <table className="w-full text-sm text-left">
         <thead className="text-muted-foreground uppercase bg-secondary/30 font-medium border-b border-border">
           <tr>
@@ -26,7 +26,7 @@ export function TableSkeleton({
                 <td key={colIndex} className="px-6 py-4">
                   {colIndex === 0 ? (
                     <div className="flex items-center gap-4">
-                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <Skeleton className="h-10 w-10 rounded-none" />
                       <div className="space-y-2">
                         <Skeleton className="h-4 w-32" />
                         <Skeleton className="h-3 w-24" />

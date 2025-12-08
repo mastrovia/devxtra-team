@@ -12,7 +12,7 @@ export const Spotlight = ({ className, fill }: SpotlightProps) => {
     return (
         <div
             className={cn(
-                "pointer-events-none absolute -inset-px rounded-xl opacity-0 bg-neon-to-r transition duration-300 group-hover:opacity-100",
+                "pointer-events-none absolute -inset-px rounded-none opacity-0 bg-neon-to-r transition duration-300 group-hover:opacity-100",
                 className
             )}
             style={{
@@ -70,7 +70,7 @@ export const SpotlightCard = ({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             className={cn(
-                "relative flex h-full items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-slate-900/50 backdrop-blur-sm",
+                "relative flex h-full items-center justify-center overflow-hidden rounded-none border border-white/10 bg-slate-900/50 backdrop-blur-sm",
                 className
             )}
         >
