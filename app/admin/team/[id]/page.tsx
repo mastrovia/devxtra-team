@@ -194,12 +194,12 @@ export default function EditTeamMemberPage() {
                   </AvatarFallback>
                 </Avatar>
                 {uploading && (
-                  <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center">
-                    <div className="h-8 w-8 border-3 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="absolute inset-0 bg-black/60 rounded-none flex items-center justify-center">
+                    <div className="h-8 w-8 border-3 border-white border-t-transparent rounded-none animate-spin" />
                   </div>
                 )}
-                <label className="absolute inset-0 rounded-full cursor-pointer opacity-0 hover:opacity-100 transition-opacity">
-                  <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center">
+                <label className="absolute inset-0 rounded-none cursor-pointer opacity-0 hover:opacity-100 transition-opacity">
+                  <div className="absolute inset-0 bg-black/40 rounded-none flex items-center justify-center">
                     <Upload className="h-8 w-8 text-white" />
                   </div>
                   <input
@@ -287,7 +287,7 @@ export default function EditTeamMemberPage() {
                     Role
                   </Label>
                   <select
-                    className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="flex h-11 w-full rounded-none border border-input bg-background px-3 py-2 text-sm mt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     value={formData.role}
                     onChange={(e) =>
                       setFormData({ ...formData, role: e.target.value })

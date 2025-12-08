@@ -319,7 +319,7 @@ export default function NewProjectPage() {
             >
               {loading ? (
                 <>
-                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-none animate-spin mr-2" />
                   Creating...
                 </>
               ) : (

@@ -66,13 +66,13 @@ export default function ProjectsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Completed":
-        return "bg-green-500/15 text-green-700 border-green-200";
+        return "bg-green-500/15 text-green-700 border-green-200 hover:bg-green-500/25 outline-none border-none";
       case "In Progress":
-        return "bg-blue-500/15 text-blue-700 border-blue-200";
+        return "bg-blue-500/15 text-blue-700 border-blue-200 hover:bg-blue-500/25 outline-none border-none";
       case "On Hold":
-        return "bg-amber-500/15 text-amber-700 border-amber-200";
+        return "bg-amber-500/15 text-amber-700 border-amber-200 hover:bg-amber-500/25 outline-none border-none";
       default:
-        return "bg-gray-500/15 text-gray-700 border-gray-200";
+        return "bg-gray-500/15 text-gray-700 border-gray-200 hover:bg-gray-500/25 outline-none border-none";
     }
   };
 
@@ -150,7 +150,7 @@ export default function ProjectsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <Badge
-                      variant="outline"
+                      variant="default"
                       className={getStatusColor(project.status)}
                     >
                       {project.status}
@@ -172,7 +172,7 @@ export default function ProjectsPage() {
                           </Avatar>
                         ))}
                       {(project.assigned_member_ids || []).length > 4 && (
-                        <div className="h-8 w-8 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs font-medium">
+                        <div className="h-8 w-8 rounded-none bg-muted border-2 border-background flex items-center justify-center text-xs font-medium">
                           +{(project.assigned_member_ids || []).length - 4}
                         </div>
                       )}

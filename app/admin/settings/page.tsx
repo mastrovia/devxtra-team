@@ -121,7 +121,7 @@ export default function SettingsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Invite / Add Form */}
-        <div className="border border-border bg-card p-6 rounded-md">
+        <div className="border border-border bg-card p-6 rounded-none">
           <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
             <UserPlus className="h-5 w-5" />
             Add New Admin
@@ -156,7 +156,7 @@ export default function SettingsPage() {
             </div>
 
             {tempPassword && (
-              <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-md flex items-center justify-between">
+              <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-none flex items-center justify-between">
                 <div className="text-sm">
                   <p className="font-semibold text-green-700">Temp Password:</p>
                   <code className="text-foreground">{tempPassword}</code>
@@ -185,7 +185,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Info Card / Instructions */}
-        <div className="border border-border bg-secondary/20 p-6 rounded-md flex flex-col justify-center">
+        <div className="border border-border bg-secondary/20 p-6 rounded-none flex flex-col justify-center">
           <h4 className="font-semibold mb-2">Access Management</h4>
           <ul className="text-sm text-muted-foreground space-y-2 list-disc pl-4">
             <li>
@@ -205,17 +205,17 @@ export default function SettingsPage() {
       </div>
 
       {/* Admins List */}
-      <div className="border border-border bg-card rounded-md overflow-hidden">
+      <div className="border border-border bg-card rounded-none overflow-hidden">
         <div className="p-6 border-b border-border">
           <h3 className="text-xl font-semibold">Team Members</h3>
         </div>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Email</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Last Login</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="p-5">Email</TableHead>
+              <TableHead className="p-5">Status</TableHead>
+              <TableHead className="p-5">Last Login</TableHead>
+              <TableHead className="p-5 text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -226,7 +226,7 @@ export default function SettingsPage() {
 
               return (
                 <TableRow key={admin.id}>
-                  <TableCell className="font-medium">
+                  <TableCell className="p-5 font-medium">
                     {admin.email}
                     {isMe && (
                       <Badge variant="secondary" className="ml-2 text-[10px]">
@@ -234,7 +234,7 @@ export default function SettingsPage() {
                       </Badge>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="p-5">
                     {isBanned ? (
                       <Badge variant="destructive">Disabled</Badge>
                     ) : (
@@ -246,12 +246,12 @@ export default function SettingsPage() {
                       </Badge>
                     )}
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-xs">
+                  <TableCell className="p-5 text-muted-foreground text-xs">
                     {admin.last_sign_in_at
                       ? new Date(admin.last_sign_in_at).toLocaleDateString()
                       : "Never"}
                   </TableCell>
-                  <TableCell className="text-right space-x-2">
+                  <TableCell className="p-5 text-right space-x-2">
                     {!isMe && (
                       <>
                         <Button

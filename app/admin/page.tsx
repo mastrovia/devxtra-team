@@ -148,7 +148,7 @@ export default function AdminDashboard() {
       {/* Charts Grid */}
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Project Status Overview */}
-        <div className="lg:col-span-2 border border-border rounded-xl p-6 bg-gradient-to-br from-card to-card/50">
+        <div className="lg:col-span-2 border border-border rounded-none p-6 bg-gradient-to-br from-card to-card/50">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="font-semibold text-base">Project Status</h3>
@@ -173,9 +173,9 @@ export default function AdminDashboard() {
                         {item.count} projects
                       </span>
                     </div>
-                    <div className="h-2 bg-secondary/30 rounded-full overflow-hidden">
+                    <div className="h-2 bg-secondary/30 rounded-none overflow-hidden">
                       <div
-                        className="h-full rounded-full transition-all"
+                        className="h-full rounded-none transition-all"
                         style={{
                           width: `${percentage}%`,
                           backgroundColor: item.fill,
@@ -194,7 +194,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Quick Stats */}
-        <div className="border border-border rounded-xl p-6 bg-gradient-to-br from-card to-card/50">
+        <div className="border border-border rounded-none p-6 bg-gradient-to-br from-card to-card/50">
           <h3 className="font-semibold text-base mb-4">Quick Stats</h3>
           <div className="space-y-4">
             <StatItem
@@ -219,7 +219,7 @@ export default function AdminDashboard() {
       {/* Team Workload & Recent Activity */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Team Workload Chart */}
-        <div className="border border-border rounded-xl p-6 bg-gradient-to-br from-card to-card/50">
+        <div className="border border-border rounded-none p-6 bg-gradient-to-br from-card to-card/50">
           <div className="mb-4">
             <h3 className="font-semibold text-base">Team Workload</h3>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -263,7 +263,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Recent Projects */}
-        <div className="border border-border rounded-xl p-6 bg-gradient-to-br from-card to-card/50">
+        <div className="border border-border rounded-none p-6 bg-gradient-to-br from-card to-card/50">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-semibold text-base">Recent Projects</h3>
@@ -284,10 +284,10 @@ export default function AdminDashboard() {
               {stats.recentProjects.map((project) => (
                 <div
                   key={project.id}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/30 transition-colors cursor-pointer group"
+                  className="flex items-center justify-between p-3 rounded-none hover:bg-muted/30 transition-colors cursor-pointer group"
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <div className="h-8 w-8 rounded-none bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <FolderGit2 className="h-4 w-4 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -349,10 +349,10 @@ function MetricCard({
   pulse?: boolean;
 }) {
   return (
-    <div className="relative border border-border rounded-xl p-5 bg-gradient-to-br from-card to-card/50 hover:shadow-md transition-shadow">
+    <div className="relative border border-border rounded-none p-5 bg-gradient-to-br from-card to-card/50 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
         <div
-          className={`p-2 rounded-lg bg-primary/5 ${
+          className={`p-2 rounded-none bg-primary/5 ${
             pulse ? "animate-pulse" : ""
           }`}
         >
@@ -380,8 +380,8 @@ function StatItem({
   icon: React.ElementType;
 }) {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-      <div className="p-2 rounded-lg bg-primary/10">
+    <div className="flex items-center gap-3 p-3 rounded-none bg-muted/30">
+      <div className="p-2 rounded-none bg-primary/10">
         <Icon className="h-4 w-4 text-primary" />
       </div>
       <div className="flex-1">

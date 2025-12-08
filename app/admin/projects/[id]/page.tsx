@@ -356,7 +356,7 @@ export default function EditProjectPage() {
         <div className="fixed bottom-0 left-64 right-0 border-t border-border bg-card/95 backdrop-blur px-8 py-4 z-20">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="text-sm text-amber-600 flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+              <div className="h-2 w-2 rounded-none bg-amber-500 animate-pulse" />
               Unsaved changes
             </div>
             <div className="flex gap-3">
