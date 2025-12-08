@@ -10,6 +10,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { logout } from "@/lib/auth-actions";
 
 export default function AdminLayout({
   children,
@@ -62,6 +63,9 @@ export default function AdminLayout({
           <Button
             variant="outline"
             className="w-full justify-start rounded-none border-foreground/20 hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors"
+            onClick={async () => {
+              await logout();
+            }}
           >
             <LogOut className="mr-3 h-4 w-4" />
             Logout
