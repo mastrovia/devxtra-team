@@ -15,6 +15,7 @@ export type Project = {
   images: string[];
   metrics: string | null;
   assigned_member_ids?: string[];
+  category: "freelance" | "self";
 };
 
 export async function getProjects() {
@@ -58,6 +59,7 @@ export async function createProject(formData: FormData) {
   const dueDate = formData.get("dueDate") as string;
   const link = formData.get("link") as string;
   const metrics = formData.get("metrics") as string;
+  const category = (formData.get("category") as string) || "freelance";
   const tagsStr = formData.get("tags") as string;
   const imagesStr = formData.get("images") as string;
   const memberIdsStr = formData.get("memberIds") as string;
@@ -94,6 +96,7 @@ export async function createProject(formData: FormData) {
       link: link || null,
       images,
       metrics: metrics || null,
+      category,
     })
     .select()
     .single();
@@ -132,6 +135,7 @@ export async function updateProject(formData: FormData) {
   const dueDate = formData.get("dueDate") as string;
   const link = formData.get("link") as string;
   const metrics = formData.get("metrics") as string;
+  const category = (formData.get("category") as string) || "freelance";
   const tagsStr = formData.get("tags") as string;
   const imagesStr = formData.get("images") as string;
   const memberIdsStr = formData.get("memberIds") as string;
@@ -167,6 +171,7 @@ export async function updateProject(formData: FormData) {
       link: link || null,
       images,
       metrics: metrics || null,
+      category,
     })
     .eq("id", id);
 

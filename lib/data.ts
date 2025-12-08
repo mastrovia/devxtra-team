@@ -6,6 +6,7 @@ export type Project = {
   tags: string[];
   link?: string;
   metrics?: string;
+  category?: "freelance" | "self";
 };
 
 export type TimelineItem = {

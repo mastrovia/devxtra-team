@@ -104,6 +104,7 @@ export default function ProjectsPage() {
               <tr>
                 <th className="px-6 py-4">Project</th>
                 <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4">Category</th>
                 <th className="px-6 py-4">Team</th>
                 <th className="px-6 py-4">Due Date</th>
                 <th className="px-6 py-4">Tags</th>
@@ -142,6 +143,11 @@ export default function ProjectsPage() {
                       className={getStatusColor(project.status)}
                     >
                       {project.status}
+                    </Badge>
+                  </td>
+                  <td className="px-6 py-4">
+                    <Badge variant="outline" className="capitalize">
+                      {project.category || "freelance"}
                     </Badge>
                   </td>
                   <td className="px-6 py-4">
@@ -218,7 +224,7 @@ export default function ProjectsPage() {
               {filteredProjects.length === 0 && (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="text-center py-12 text-muted-foreground"
                   >
                     No projects found.

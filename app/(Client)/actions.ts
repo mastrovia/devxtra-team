@@ -9,6 +9,7 @@ export async function getPublicProjects() {
     .from("projects")
     .select("*")
     .eq("status", "Completed")
+    .neq("category", "self")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -89,8 +90,11 @@ export async function getPublicMemberById(id: string) {
   const works = (projectMembers || [])
     .map((pm: any) => pm.projects)
     .filter(
-      (p: any) => p && (p.status === "Completed" || p.status === "In Progress")
-    ) // Show completed/in-progress works
+      (p: any) =>
+        p &&
+        (p.status === "Completed" || p.status === "In Progress") &&
+        p.category !== "self"
+    ) // Show completed/in-progress works, hide self category
     .map((p: any) => ({
       ...p,
       year: p.start_date
@@ -125,7 +129,7 @@ export async function getPublicProjectById(id: string) {
     .eq("id", id)
     .single();
 
-  if (error || !project) {
+  if (error || !project || project.category === "self") {
     return null;
   }
 

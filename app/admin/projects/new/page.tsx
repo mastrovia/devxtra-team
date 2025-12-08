@@ -43,6 +43,7 @@ export default function NewProjectPage() {
     images: [] as string[],
     metrics: "",
     assigned_member_ids: [] as string[],
+    category: "freelance" as "freelance" | "self",
   });
 
   useEffect(() => {
@@ -75,6 +76,7 @@ export default function NewProjectPage() {
     data.append("images", formData.images.join(","));
     data.append("metrics", formData.metrics);
     data.append("memberIds", formData.assigned_member_ids.join(","));
+    data.append("category", formData.category);
 
     const result = await createProject(data);
 
@@ -189,6 +191,23 @@ export default function NewProjectPage() {
                     className="mt-2 min-h-[100px] resize-none rounded-none"
                     placeholder="Describe the project goals..."
                   />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Category</Label>
+                  <select
+                    className="flex h-11 w-full rounded-none border border-input bg-background px-3 py-2 text-sm mt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    value={formData.category}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        category: e.target.value as "freelance" | "self",
+                      })
+                    }
+                  >
+                    <option value="freelance">Freelance</option>
+                    <option value="self">Self</option>
+                  </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

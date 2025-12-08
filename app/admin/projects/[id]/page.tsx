@@ -66,6 +66,7 @@ export default function EditProjectPage() {
         link: formData.link,
         images: formData.images,
         assigned_member_ids: formData.assigned_member_ids,
+        category: formData.category,
       });
       setHasChanges(currentData !== originalData);
     }
@@ -97,6 +98,7 @@ export default function EditProjectPage() {
         link: project.link,
         images: project.images,
         assigned_member_ids: project.assigned_member_ids,
+        category: project.category,
       })
     );
     setTeamMembers(members);
@@ -123,6 +125,7 @@ export default function EditProjectPage() {
     data.append("images", (formData.images || []).join(","));
     data.append("metrics", formData.metrics || "");
     data.append("memberIds", (formData.assigned_member_ids || []).join(","));
+    data.append("category", formData.category || "freelance");
 
     const result = await updateProject(data);
 
@@ -273,21 +276,38 @@ export default function EditProjectPage() {
                   </div>
 
                   <div>
-                    <Label className="text-sm font-medium">Tags</Label>
-                    <Input
-                      value={(formData.tags || []).join(", ")}
+                    <Label className="text-sm font-medium">Category</Label>
+                    <select
+                      className="flex h-11 w-full rounded-none border border-input bg-background px-3 py-2 text-sm mt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      value={formData.category || "freelance"}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          tags: e.target.value
-                            .split(",")
-                            .map((t) => t.trim())
-                            .filter(Boolean),
+                          category: e.target.value as "freelance" | "self",
                         })
                       }
-                      className="mt-2 h-11 rounded-none"
-                    />
+                    >
+                      <option value="freelance">Freelance</option>
+                      <option value="self">Self</option>
+                    </select>
                   </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Tags</Label>
+                  <Input
+                    value={(formData.tags || []).join(", ")}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        tags: e.target.value
+                          .split(",")
+                          .map((t) => t.trim())
+                          .filter(Boolean),
+                      })
+                    }
+                    className="mt-2 h-11 rounded-none"
+                  />
                 </div>
               </div>
             </div>
