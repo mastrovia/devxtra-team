@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { getProjects, deleteProject } from "./actions";
+import { getProjects, deleteProject, Project } from "./actions";
 import { getTeamMembers } from "../team/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,18 +11,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { TableSkeleton } from "@/components/skeleton-table";
-
-type Project = {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  start_date: string;
-  due_date: string;
-  tags: string[];
-  link: string;
-  assigned_member_ids: string[];
-};
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);

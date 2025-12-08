@@ -68,8 +68,18 @@ export async function createProject(formData: FormData) {
         .map((t) => t.trim())
         .filter(Boolean)
     : [];
-  const images = imagesStr ? JSON.parse(imagesStr) : [];
-  const memberIds = memberIdsStr ? JSON.parse(memberIdsStr) : [];
+  const images = imagesStr
+    ? imagesStr
+        .split(",")
+        .map((i) => i.trim())
+        .filter(Boolean)
+    : [];
+  const memberIds = memberIdsStr
+    ? memberIdsStr
+        .split(",")
+        .map((m) => m.trim())
+        .filter(Boolean)
+    : [];
 
   // Insert project
   const { data: project, error: projectError } = await supabase
@@ -132,8 +142,18 @@ export async function updateProject(formData: FormData) {
         .map((t) => t.trim())
         .filter(Boolean)
     : [];
-  const images = imagesStr ? JSON.parse(imagesStr) : [];
-  const memberIds = memberIdsStr ? JSON.parse(memberIdsStr) : [];
+  const images = imagesStr
+    ? imagesStr
+        .split(",")
+        .map((i) => i.trim())
+        .filter(Boolean)
+    : [];
+  const memberIds = memberIdsStr
+    ? memberIdsStr
+        .split(",")
+        .map((m) => m.trim())
+        .filter(Boolean)
+    : [];
 
   // Update project
   const { error: projectError } = await supabase
