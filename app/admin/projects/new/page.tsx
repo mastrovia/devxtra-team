@@ -22,6 +22,7 @@ import {
   Upload,
   Image as ImageIcon,
   X,
+  Search,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -30,6 +31,7 @@ export default function NewProjectPage() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const [memberSearch, setMemberSearch] = useState("");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -329,7 +331,7 @@ export default function NewProjectPage() {
 
         {/* Right Side - Team Members */}
         <div className="w-80 flex-shrink-0">
-          <div className="bg-gradient-to-br from-card to-card/50 border border-border rounded-none max-h-[400px] flex flex-col">
+          <div className="bg-gradient-to-br from-card sticky top-0 to-card/50 border border-border rounded-none max-h-[600px] flex flex-col">
             <div className="p-4 border-b border-border flex-shrink-0">
               <h3 className="font-semibold flex items-center gap-2">
                 <Users className="h-5 w-5" />
@@ -338,45 +340,73 @@ export default function NewProjectPage() {
               <p className="text-xs text-muted-foreground mt-1">
                 {formData.assigned_member_ids.length} selected
               </p>
+              <div className="relative mt-2">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search members..."
+                  className="pl-8 h-9 rounded-none text-sm"
+                  value={memberSearch}
+                  onChange={(e) => setMemberSearch(e.target.value)}
+                />
+              </div>
             </div>
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
-              {teamMembers.map((member) => {
-                const isSelected = formData.assigned_member_ids.includes(
-                  member.id
-                );
-                return (
-                  <button
-                    key={member.id}
-                    type="button"
-                    onClick={() => toggleMember(member.id)}
-                    className={`w-full p-3 rounded-none border-2 transition-all flex items-center gap-3 ${
-                      isSelected
-                        ? "border-primary bg-primary/5"
-                        : "border-transparent hover:bg-muted/50"
-                    }`}
-                  >
-                    <Avatar className="h-10 w-10 flex-shrink-0 rounded-none">
-                      <AvatarImage src={member.avatar} />
-                      <AvatarFallback className="text-xs rounded-none">
-                        {member.name.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 text-left min-w-0">
-                      <div className="text-sm font-medium truncate">
-                        {member.name}
+              {teamMembers
+                .filter(
+                  (m) =>
+                    m.name.toLowerCase().includes(memberSearch.toLowerCase()) ||
+                    (m.role || "")
+                      .toLowerCase()
+                      .includes(memberSearch.toLowerCase())
+                )
+                .map((member) => {
+                  const isSelected = formData.assigned_member_ids.includes(
+                    member.id
+                  );
+                  return (
+                    <button
+                      key={member.id}
+                      type="button"
+                      onClick={() => toggleMember(member.id)}
+                      className={`w-full p-3 rounded-none border-2 transition-all flex items-center gap-3 ${
+                        isSelected
+                          ? "border-primary bg-primary/5"
+                          : "border-transparent hover:bg-muted/50"
+                      }`}
+                    >
+                      <Avatar className="h-10 w-10 flex-shrink-0 rounded-none">
+                        <AvatarImage src={member.avatar} />
+                        <AvatarFallback className="text-xs rounded-none">
+                          {member.name.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 text-left min-w-0">
+                        <div className="text-sm font-medium truncate">
+                          {member.name}
+                        </div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {member.role}
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground truncate">
-                        {member.role}
-                      </div>
-                    </div>
-                    {isSelected && (
-                      <div className="h-5 w-5 rounded-none bg-primary flex items-center justify-center flex-shrink-0">
-                        <Check className="h-3 w-3 text-primary-foreground" />
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
+                      {isSelected && (
+                        <div className="h-5 w-5 rounded-none bg-primary flex items-center justify-center flex-shrink-0">
+                          <Check className="h-3 w-3 text-primary-foreground" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              {teamMembers.filter(
+                (m) =>
+                  m.name.toLowerCase().includes(memberSearch.toLowerCase()) ||
+                  (m.role || "")
+                    .toLowerCase()
+                    .includes(memberSearch.toLowerCase())
+              ).length === 0 && (
+                <div className="text-center py-8 text-sm text-muted-foreground">
+                  No members found
+                </div>
+              )}
             </div>
           </div>
         </div>
