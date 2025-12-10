@@ -20,8 +20,18 @@ export async function getPublicProjects() {
     return (projects || []).map((p) => ({
         ...p,
         year: p.start_date
-            ? new Date(p.start_date).getFullYear().toString()
-            : new Date(p.created_at).getFullYear().toString(),
+            ? new Date(p.start_date)
+                .toLocaleDateString("en-US", {
+                    month: "short",
+                    year: "numeric",
+                })
+                .toUpperCase()
+            : new Date(p.created_at)
+                .toLocaleDateString("en-US", {
+                    month: "short",
+                    year: "numeric",
+                })
+                .toUpperCase(),
         tags: p.tags || [],
     }));
 }
@@ -98,8 +108,18 @@ export async function getPublicMemberById(id: string) {
         .map((p: any) => ({
             ...p,
             year: p.start_date
-                ? new Date(p.start_date).getFullYear().toString()
-                : new Date(p.created_at).getFullYear().toString(),
+                ? new Date(p.start_date)
+                    .toLocaleDateString("en-US", {
+                        month: "short",
+                        year: "numeric",
+                    })
+                    .toUpperCase()
+                : new Date(p.created_at)
+                    .toLocaleDateString("en-US", {
+                        month: "short",
+                        year: "numeric",
+                    })
+                    .toUpperCase(),
             tags: p.tags || [],
         }));
 
@@ -184,8 +204,18 @@ export async function getPublicProjectById(id: string) {
     return {
         ...project,
         year: project.start_date
-            ? new Date(project.start_date).getFullYear().toString()
-            : new Date(project.created_at).getFullYear().toString(),
+            ? new Date(project.start_date)
+                .toLocaleDateString("en-US", {
+                    month: "short",
+                    year: "numeric",
+                })
+                .toUpperCase()
+            : new Date(project.created_at)
+                .toLocaleDateString("en-US", {
+                    month: "short",
+                    year: "numeric",
+                })
+                .toUpperCase(),
         tags: project.tags || [],
         team,
     };

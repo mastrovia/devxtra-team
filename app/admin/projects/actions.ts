@@ -174,6 +174,7 @@ export async function updateProject(formData: FormData) {
             link: link || null,
             images,
             metrics: metrics || null,
+            budget: budget || null,
             category,
         })
         .eq("id", id);
