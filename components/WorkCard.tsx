@@ -6,9 +6,9 @@ export default function WorkCard({ project }: { project: Project }) {
     return (
         <div className="h-full border border-border bg-card hover:border-foreground/50 transition-colors duration-300 flex flex-col items-stretch group">
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 pt-6 px-6">
-                <CardTitle className="text-lg font-bold group-hover:underline decoration-1 underline-offset-4 transition-all flex items-center justify-between w-full">
+                <CardTitle className="text-lg font-bold group-hover:underline decoration-1 underline-offset-4 transition-all flex items-center gap-3">
                     <span>{project.title}</span>
-                    <span className="text-sm font-mono font-normal text-muted-foreground ml-2">
+                    <span className="text-sm font-mono font-normal text-muted-foreground">
                         {project.year}
                     </span>
                 </CardTitle>
