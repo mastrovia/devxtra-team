@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS projects (
   link TEXT,
   images TEXT[] DEFAULT '{}',
   metrics TEXT,
+  budget TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
