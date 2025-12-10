@@ -6,7 +6,6 @@ import Timeline from "@/components/Timeline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { getPublicMemberById } from "../../actions";
 
 export default async function DeveloperPage({
