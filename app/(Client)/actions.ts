@@ -1,148 +1,140 @@
 "use server";
 
-import { createClient, createPublicClient } from "@/lib/supabase/server";
-import { unstable_cache } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
 
-// Cache public projects for 5 minutes
-export const getPublicProjects = unstable_cache(
-  async () => {
-    const supabase = createPublicClient();
+export async function getPublicProjects() {
+  const supabase = await createClient();
 
-    const { data: projects, error } = await supabase
-      .from("projects")
-      .select(
-        "id, title, description, status, start_date, created_at, tags, link, metrics, category, images"
-      )
-      .eq("status", "Completed")
-      .neq("category", "self")
-      .order("created_at", { ascending: false });
+  const { data: projects, error } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("status", "Completed")
+    .neq("category", "self")
+    .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Error fetching projects:", error);
-      return [];
-    }
-
-    return (projects || []).map((p) => ({
-      ...p,
-      year: p.start_date
-        ? new Date(p.start_date).getFullYear().toString()
-        : new Date(p.created_at).getFullYear().toString(),
-      tags: p.tags || [],
-    }));
-  },
-  ["public-projects"],
-  {
-    revalidate: 300, // Cache for 5 minutes
-    tags: ["projects"],
+  if (error) {
+    console.error("Error fetching projects:", error);
+    return [];
   }
-);
 
-// Cache public team for 5 minutes
-export const getPublicTeam = unstable_cache(
-  async () => {
-    const supabase = createPublicClient();
+  return (projects || []).map((p) => ({
+    ...p,
+    year: p.start_date
+      ? new Date(p.start_date)
+          .toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          })
+          .toUpperCase()
+      : new Date(p.created_at)
+          .toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          })
+          .toUpperCase(),
+    tags: p.tags || [],
+  }));
+}
 
-    const { data: team, error } = await supabase
-      .from("team")
-      .select("id, name, email, role, status, avatar, bio, skills")
-      .eq("status", "Active")
-      .order("name", { ascending: true });
+export async function getPublicTeam() {
+  const supabase = await createClient();
 
-    if (error) {
-      console.error("Error fetching team:", error);
-      return [];
-    }
+  const { data: team, error } = await supabase.from("team").select("*").eq("status", "Active").order("name", { ascending: true });
 
-    return (team || []).map((t) => ({
-      ...t,
-      skills: t.skills || [],
-      works: [], // Placeholder to match type
-      timeline: [], // Placeholder to match type
-      quote: t.bio ? t.bio.split(".")[0] : "Building the future.",
-    }));
-  },
-  ["public-team"],
-  {
-    revalidate: 300, // Cache for 5 minutes
-    tags: ["team"],
+  if (error) {
+    console.error("Error fetching team:", error);
+    return [];
   }
-);
 
-// Cache landing stats for 10 minutes (changes rarely)
-export const getLandingStats = unstable_cache(
-  async () => {
-    const supabase = createPublicClient();
+  return (team || []).map((t) => ({
+    ...t,
+    skills: t.skills || [],
+    works: [], // Placeholder to match type
+    timeline: [], // Placeholder to match type
+    quote: t.bio ? t.bio.split(".")[0] : "Building the future.",
+  }));
+}
 
-    const { count: teamCount } = await supabase
-      .from("team")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "Active");
+export async function getLandingStats() {
+  const supabase = await createClient();
 
-    const { count: projectCount } = await supabase
-      .from("projects")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "Completed");
+  const { count: teamCount } = await supabase.from("team").select("*", { count: "exact", head: true }).eq("status", "Active");
 
-    return {
-      experts: teamCount || 0,
-      shipped: projectCount || 0,
-    };
-  },
-  ["landing-stats"],
-  {
-    revalidate: 600, // Cache for 10 minutes
-    tags: ["stats"],
-  }
-);
+  const { count: projectCount } = await supabase.from("projects").select("*", { count: "exact", head: true }).eq("status", "Completed");
+
+  return {
+    experts: teamCount || 0,
+    shipped: projectCount || 0,
+  };
+}
 
 export async function getPublicMemberById(id: string) {
   const supabase = await createClient();
 
-  const { data: member, error } = await supabase
-    .from("team")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const { data: member, error } = await supabase.from("team").select("*").eq("id", id).single();
 
   if (error || !member) {
     return null;
   }
 
   // Fetch projects
-  const { data: projectMembers } = await supabase
-    .from("project_members")
-    .select("project_id, projects(*)")
-    .eq("member_id", id);
+  const { data: projectMembers } = await supabase.from("project_members").select("project_id, projects(*)").eq("member_id", id);
 
   const works = (projectMembers || [])
     .map((pm: any) => pm.projects)
-    .filter(
-      (p: any) =>
-        p &&
-        (p.status === "Completed" || p.status === "In Progress") &&
-        p.category !== "self"
-    ) // Show completed/in-progress works, hide self category
+    .filter((p: any) => p && (p.status === "Completed" || p.status === "In Progress") && p.category !== "self") // Show completed/in-progress works, hide self category
     .map((p: any) => ({
       ...p,
       year: p.start_date
-        ? new Date(p.start_date).getFullYear().toString()
-        : new Date(p.created_at).getFullYear().toString(),
+        ? new Date(p.start_date)
+            .toLocaleDateString("en-US", {
+              month: "short",
+              year: "numeric",
+            })
+            .toUpperCase()
+        : new Date(p.created_at)
+            .toLocaleDateString("en-US", {
+              month: "short",
+              year: "numeric",
+            })
+            .toUpperCase(),
       tags: p.tags || [],
     }));
+
+  // Create timeline events
+  const joinedDate = new Date(member.joined_date || member.created_at);
+  const joinedEvent = {
+    year: joinedDate.toLocaleDateString("en-US", { month: "short", year: "numeric" }).toUpperCase(),
+    title: "Joined Team",
+    description: `Started role as ${member.role}`,
+    dateObj: joinedDate,
+  };
+
+  const projectEvents = works.map((p: any) => {
+    const startDate = p.start_date ? new Date(p.start_date) : new Date(p.created_at);
+    const endDate = p.due_date ? new Date(p.due_date) : null;
+
+    const startStr = startDate.toLocaleDateString("en-US", { month: "short", year: "numeric" }).toUpperCase();
+    const endStr = endDate ? endDate.toLocaleDateString("en-US", { month: "short", year: "numeric" }).toUpperCase() : "PRESENT";
+
+    return {
+      year: `${startStr} - ${endStr}`,
+      title: p.title,
+      description: `Worked on ${p.title}`,
+      dateObj: startDate,
+    };
+  });
+
+  // Combine and sort chronologically
+  const timeline = [joinedEvent, ...projectEvents]
+    .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime())
+    .map(({ dateObj, ...rest }) => rest);
 
   return {
     ...member,
     skills: member.skills || [],
     works,
-    timeline: [
-      {
-        year: new Date(member.joined_date || member.created_at)
-          .getFullYear()
-          .toString(),
-        title: "Joined Team",
-        description: `Started role as ${member.role}`,
-      },
-    ], // Simplified timeline for now
+    timeline,
   };
 }
 
@@ -150,21 +142,14 @@ export async function getPublicProjectById(id: string) {
   const supabase = await createClient();
 
   // Fetch project details
-  const { data: project, error } = await supabase
-    .from("projects")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const { data: project, error } = await supabase.from("projects").select("*").eq("id", id).single();
 
   if (error || !project || project.category === "self") {
     return null;
   }
 
   // Fetch team members involved in the project
-  const { data: projectMembers } = await supabase
-    .from("project_members")
-    .select("member_id, team(*)")
-    .eq("project_id", id);
+  const { data: projectMembers } = await supabase.from("project_members").select("member_id, team(*)").eq("project_id", id);
 
   const team = (projectMembers || [])
     .map((pm: any) => pm.team)
@@ -180,8 +165,18 @@ export async function getPublicProjectById(id: string) {
   return {
     ...project,
     year: project.start_date
-      ? new Date(project.start_date).getFullYear().toString()
-      : new Date(project.created_at).getFullYear().toString(),
+      ? new Date(project.start_date)
+          .toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          })
+          .toUpperCase()
+      : new Date(project.created_at)
+          .toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          })
+          .toUpperCase(),
     tags: project.tags || [],
     team,
   };
