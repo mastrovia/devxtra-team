@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider'; // Assuming we might have or need a slider, otherwise standard input
+
 import { X, Check, ZoomIn, ZoomOut } from 'lucide-react';
 
 type ImageCropperProps = {
