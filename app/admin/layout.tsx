@@ -3,25 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  LayoutDashboard,
-  Users,
-  FolderGit2,
-  Settings,
-  LogOut,
-} from "lucide-react";
+import { LayoutDashboard, Users, FolderGit2, Settings, LogOut, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { logout } from "@/lib/auth-actions";
 import { createClient } from "@/lib/supabase/client";
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const [pageTitle, setPageTitle] = useState("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -33,6 +24,11 @@ export default function AdminLayout({
     };
     loadUser();
   }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   // Get page title based on route
   useEffect(() => {
@@ -73,10 +69,26 @@ export default function AdminLayout({
   ];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      {/* Fixed Sidebar */}
-      <aside className="w-64 border-r border-border bg-card flex flex-col fixed left-0 top-0 bottom-0 z-40">
-        <div className="p-6 h-20 border-b border-border">
+    <div className="min-h-screen bg-background">
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        className="fixed top-4 left-4 z-50 lg:hidden p-2 rounded-md bg-card border border-border hover:bg-muted"
+        aria-label="Toggle menu"
+      >
+        {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+      </button>
+
+      {/* Mobile Overlay */}
+      {mobileMenuOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setMobileMenuOpen(false)} />}
+
+      {/* Sidebar - Fixed to viewport */}
+      <aside
+        className={`w-64 border-r border-border bg-card flex flex-col fixed inset-y-0 left-0 z-40 transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="p-6 h-20 border-b border-border flex items-center justify-between flex-shrink-0">
           <h1 className="text-xl font-bold tracking-tight">DevXtra Admin</h1>
         </div>
 
@@ -89,9 +101,7 @@ export default function AdminLayout({
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-none text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -101,7 +111,7 @@ export default function AdminLayout({
           })}
         </nav>
 
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border flex-shrink-0">
           <Button
             variant="outline"
             className="w-full justify-start rounded-none border-foreground/20 hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors"
@@ -115,31 +125,27 @@ export default function AdminLayout({
         </div>
       </aside>
 
-      {/* Main Content Area with Fixed Header */}
-      <div className="flex-1 flex flex-col ml-64">
+      {/* Main Content Area */}
+      <div className="lg:pl-64">
         {/* Fixed Header */}
-        <header className="h-20 border-b border-border bg-card px-8 flex items-center justify-between fixed top-0 right-0 left-64 z-30">
-          <div>
-            <h2 className="text-lg font-semibold capitalize">
-              {pageTitle || pathname.split("/").pop() || "Dashboard"}
-            </h2>
+        <header className="sticky top-0 h-20 border-b border-border bg-card px-4 lg:px-8 flex items-center justify-between z-30">
+          <div className="ml-12 lg:ml-0">
+            <h2 className="text-lg font-semibold capitalize">{pageTitle || pathname.split("/").pop() || "Dashboard"}</h2>
           </div>
           {user && (
-            <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-4">
               <div className="text-right">
                 <div className="font-medium text-sm">{user.email}</div>
-                <div className="text-xs text-muted-foreground font-mono">
-                  ID: {user.id}
-                </div>
+                <div className="text-xs text-muted-foreground font-mono">ID: {user.id}</div>
               </div>
             </div>
           )}
         </header>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-auto mt-20 p-8">
+        <main className="p-4 lg:p-8 min-h-[calc(100vh-5rem)]">
           <div className="max-w-7xl mx-auto">{children}</div>
-        </div>
+        </main>
       </div>
     </div>
   );

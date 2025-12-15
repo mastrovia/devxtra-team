@@ -9,7 +9,7 @@ export default function DeveloperCard({ developer }: { developer: Developer }) {
         <Link href={`/team/${developer.id}`} className="block h-full group">
             <div className="h-full border border-border bg-card hover:border-foreground/50 transition-colors duration-300 flex flex-col items-center text-center p-6">
                 <div className="relative mb-4">
-                    <Avatar className="h-24 w-24 border border-border group-hover:border-foreground transition-colors duration-300 grayscale">
+                    <Avatar className="h-24 w-24 border border-border group-hover:border-foreground transition-colors duration-300">
                         <AvatarImage src={developer.avatar} alt={developer.name} />
                         <AvatarFallback>{developer.name[0]}</AvatarFallback>
                     </Avatar>
