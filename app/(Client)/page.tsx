@@ -239,7 +239,7 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-32 px-6 bg-secondary/30 reveal-section border-y border-border">
+      {/* <section className="py-32 px-6 bg-secondary/30 reveal-section border-y border-border">
         <div className="container mx-auto">
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-16">
             Client Perspectives
@@ -265,7 +265,7 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Team Preview */}
       <section className="py-32 px-6 reveal-section container mx-auto border-x border-border/50">
